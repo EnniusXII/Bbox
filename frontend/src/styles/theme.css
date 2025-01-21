@@ -1,0 +1,15 @@
+:root {
+    --bg-dark: #121212;
+    --bg-light: #f4f4f4;
+    --primary: #ffffff;
+    --secondary: #aaaaaa;
+    --accent: #4A90E2;
+    --accent-hover: #357ABD;
+  
+    --font-main: 'Arial', sans-serif;
+  }
+  
+  body {
+    background-color: var(--bg-dark);
+    color: var(--primary);
+  }

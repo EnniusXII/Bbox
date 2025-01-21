@@ -1,0 +1,89 @@
+header {
+    background: var(--bg-dark);
+    border-bottom: 1px solid var(--secondary);
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    nav {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+      }
+
+    nav a {
+        padding: 0px 10px;
+        text-decoration: none;
+        color: var(--primary);
+        font-weight: bold;
+        transition: color 0.3s ease;
+      }
+      
+    nav a:hover {
+    color: var(--accent);
+    }
+
+    .login-btns-container {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    }
+  }
+
+  header > div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  footer {
+    background: var(--bg-dark);
+    color: var(--secondary);
+    padding: 10px 20px;
+    text-align: center;
+    border-top: 1px solid var(--secondary);
+  }
+  
+  main {
+    padding: 20px;
+  }
+
+
+  @media (max-width: 768px) {
+    header > div {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    nav {
+        margin-top: 20px;
+        margin-bottom: 20px;
+        flex-direction: row;
+        align-items: center;
+        width: 100%;
+        display: none;
+    }
+
+    nav.open {
+        display: flex;
+    }
+
+    nav a {
+        padding: 10px 0;
+        font-size: 1rem;
+    }
+
+    .login-btns-container {
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px !important;
+    }
+
+    .metamask-btn-container button {
+        width: 100%;
+    }
+}
