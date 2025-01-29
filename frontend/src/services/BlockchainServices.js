@@ -4,7 +4,7 @@ import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-const CONTRACT_ADDRESS = "0xc761F8E6Cb9af69C49ef3EaA1140b07AAd8056e9";
+const BBOX_CONTRACT = "0xc761F8E6Cb9af69C49ef3EaA1140b07AAd8056e9";
 
 export const connectToMetaMask = async () => {
   if (!window.ethereum) {
@@ -26,7 +26,7 @@ export const connectToMetaMask = async () => {
     console.log("Signer Address:", await signer.getAddress());
 
     // Return the contract instance with the signer
-    return new ethers.Contract(CONTRACT_ADDRESS, abi, signer);
+    return new ethers.Contract(BBOX_CONTRACT, abi, signer);
   } catch (error) {
     console.error("MetaMask connection failed:", error);
     throw error;
@@ -73,3 +73,5 @@ export const getVerificationStatus = async (requestId) => {
     throw error;
   }
 };
+
+export const addGreenCard = async () => {};
