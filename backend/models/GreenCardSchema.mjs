@@ -1,15 +1,17 @@
 import mongoose from 'mongoose';
 
 const greenCardSchema = new mongoose.Schema({
+  referenceId: {type: String, required: true, unique: true}, 
   insured: {
-    name: { type: String, required: true }, // Insured person's name
+    name: { type: String, required: true },
   },
   validity: {
-    from: { type: Date, required: true }, // Validity start date
-    to: { type: Date, required: true },   // Validity end date
+    from: { type: Date, required: true },
+    to: { type: Date, required: true },
   },
-  hash: { type: String, required: true }, // Hash of the Green Card data
-  fileId: { type: mongoose.Types.ObjectId, required: true }, // Reference to the PDF in GridFS
+  hash: { type: String, required: true },
+  fileId: { type: mongoose.Types.ObjectId, required: true },
+  transactionHash: { type: String, required: true }
 });
 
 greenCardSchema.pre('save', function(next) {

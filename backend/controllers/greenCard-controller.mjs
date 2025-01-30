@@ -1,14 +1,12 @@
 import {asyncHandler} from '../middleware/asyncHandler.mjs';
-import ErrorResponse from '../models/ErrorResponseModel.mjs';
 import crypto from 'crypto';
 import GreenCard from '../models/GreenCardSchema.mjs';
 import { createGreenCard } from '../utils/createPDF.mjs';
 import mongoose from 'mongoose';
+import { v4 as uuid} from 'uuid';
 
 export const addGreenCard = asyncHandler(async (req, res, next) => {
   try{
-    console.log('Incoming request data:', req.body);
-
     const { insured, validity } = req.body;
 
     if (!insured || !insured.name) {
@@ -25,13 +23,15 @@ export const addGreenCard = asyncHandler(async (req, res, next) => {
       });
     }
 
+    const insuranceId = uuid();
+
     const greenCardData = {
       insured: { name: insured.name },
       validity: {
         from: validity.from,
         to: validity.to,
       },
-      hash: generateHash(req.body),
+      hash: generateHash(insuranceId, req.body),
       fileId: null,
     };
 
@@ -46,7 +46,8 @@ export const addGreenCard = asyncHandler(async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Green Card created successfully',
-      greenCard,
+      insuranceId,
+      hash,
     });
   } catch (error) {
     console.error('Error creating Green Card:', error);
