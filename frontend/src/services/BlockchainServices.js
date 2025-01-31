@@ -5,6 +5,7 @@ import axios from 'axios';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const BBOX_CONTRACT = "0xc761F8E6Cb9af69C49ef3EaA1140b07AAd8056e9";
+const GREEN_CARD_CONTRACT = "0xE3D49AD6C419A03da46e338607AAd3de788da27d";
 
 export const connectToMetaMask = async () => {
   if (!window.ethereum) {

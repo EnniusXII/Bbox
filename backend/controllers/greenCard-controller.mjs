@@ -25,23 +25,7 @@ export const addGreenCard = asyncHandler(async (req, res, next) => {
 
     const insuranceId = uuid();
 
-    const greenCardData = {
-      insured: { name: insured.name },
-      validity: {
-        from: validity.from,
-        to: validity.to,
-      },
-      hash: generateHash(insuranceId, req.body),
-      fileId: null,
-    };
-
-    const fileName = `green_card_${greenCardData.hash.slice(0, 8)}.pdf`;
-    const result = await createGreenCard(req.body, greenCardData.hash, req.gfs, fileName);
-
-    greenCardData.fileId = result.fileId;
-
-    const greenCard = new GreenCard(greenCardData);
-    await greenCard.save();
+    const hash = generateHash({ insuranceId, insured, validity });
 
     res.status(201).json({
       success: true,
