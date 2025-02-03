@@ -8,6 +8,7 @@ import verificationRouter from "./routes/verification-routes.mjs"
 import notificationRouter from "./routes/notification-routes.mjs"
 import { errorHandler } from "./middleware/errorHandler.mjs";
 import requestsRouter from "./routes/request-routes.mjs"
+import greenCardRouter from './routes/greenCard-routes.mjs';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/api/v1/licenses", licenseRouter);
 app.use("/api/v1/verify", verificationRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/requests", requestsRouter);
+app.use("/api/v1/green-card", greenCardRouter);
 
 app.use(errorHandler);
 
