@@ -5,9 +5,9 @@ const CreateGreenCard = () => {
   const [insuredName, setInsuredName] = useState('');
   const [validityFrom, setValidityFrom] = useState('');
   const [validityTo, setValidityTo] = useState('');
-  const [loading, setLoading] = useState(false);
   const [insuranceId, setInsuranceId] = useState('');
   const [hash, setHash] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -26,7 +26,6 @@ const CreateGreenCard = () => {
       setLoading(false);
 
       alert('Insurance ID & hash generated. Please store on-chain via Metamask.');
-      onCardCreated({insuranceId: response.data.insuranceId, hash: response.data.hash});
     } catch (err) {
       console.error('Error creating Green Card: ', err);
       alert('Failed to create Green Card.');
@@ -51,7 +50,7 @@ const CreateGreenCard = () => {
           <input type="date" name="validTo" id="validTo" value={validityTo} onChange={(e) => setValidityTo(e.target.value)} required/>
         </div>
         <div className="form-control">
-          <button type="submit" className="btn" disabled={loading}>{loading ? 'Creating Green Card...' : 'Create Green Card'}</button>
+          <button type="submit" className="btn" disabled={loading}>{loading ? 'Processing...' : 'Create Green Card'}</button>
         </div>
       </form>
 

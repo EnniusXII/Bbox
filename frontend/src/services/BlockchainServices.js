@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
-import abi from '../../contract-abi.json';
+import bboxAbi from '../../contract-abi.json';
+import greenCardAbi from '../../greenCard-abi.json';
 import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -26,8 +27,17 @@ export const connectToMetaMask = async () => {
 
     console.log("Signer Address:", await signer.getAddress());
 
+    let contractAddress;
+    if(contractType === 'GREEN_CARD') {
+      contractAddress = GREEN_CARD_CONTRACT;
+      abi = greenCardAbi;
+    } else {
+      contractAddress = BBOX_CONTRACT;
+      abi = bboxAbi;
+    }
+
     // Return the contract instance with the signer
-    return new ethers.Contract(BBOX_CONTRACT, abi, signer);
+    return new ethers.Contract(contractAddress, abi, signer);
   } catch (error) {
     console.error("MetaMask connection failed:", error);
     throw error;
@@ -36,7 +46,7 @@ export const connectToMetaMask = async () => {
 
 export const recordVerification = async ({requestId, userAddress, licenseType, isVerified}) => {
   try {
-    const contract = await connectToMetaMask();
+    const contract = await connectToMetaMask(BBOX_CONTRACT);
 
     // Interact with the contract
     const tx = await contract.recordVerification(requestId, userAddress, licenseType, isVerified);
@@ -59,7 +69,7 @@ export const recordVerification = async ({requestId, userAddress, licenseType, i
 
 export const getVerificationStatus = async (requestId) => {
   try {
-    const contract = await connectToMetaMask();
+    const contract = await connectToMetaMask(BBOX_CONTRACT);
     const [isVerified, licenseType, timestamp, userAddress] = await contract.getVerificationStatus(requestId);
 
     // Return an object with descriptive keys for better clarity
@@ -75,4 +85,48 @@ export const getVerificationStatus = async (requestId) => {
   }
 };
 
-export const addGreenCard = async () => {};
+export const storeGreenCardHash = async ({insuranceID, hash}) => {
+  try {
+    const contract = await connectToMetaMask('GREEN_CARD');
+
+    const tx = await contract.storeHash(insuranceID, hash);
+    await tx.wait();
+
+    console.log('Transaction hash: ', tx.hash);
+    return tx.hash;
+  } catch (err) {
+    console.error('Failed to store Green Card hash on-chain: ', err);
+    throw err;
+  }
+};
+
+export const confirmGreenCrard = async ({insuranceId, txHash}) => {
+  try {
+    const contract = await connectToMetaMask('GREEN_CARD');
+    const [storedHash] = await contract.getHash(insuranceId);
+
+    if(!storedHash || storedHash === ''){
+      throw new Error('Green Card hash not found on-chain');
+    }
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/confirmGreenCard`, {
+      insuranceId, txHash
+    });
+
+    console.log('Green Card confirmed: ', response.data);
+    return response.data;
+  } catch (err) {
+    console.error('Error confirming Green Card: ', err);
+    throw err;
+  }
+}
+
+export const getStoredHash = async (insuranceId) => {
+  try {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify/${insuranceId}`);
+    return response.data.hash;
+  } catch (err) {
+    console.error('Failed to get stored hash: ', err);
+    throw err;
+  }
+}
