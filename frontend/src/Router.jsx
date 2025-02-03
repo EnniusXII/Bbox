@@ -67,6 +67,22 @@ export const router = createBrowserRouter([
         path: "/requests/:requestId",
         element: <RequestInfo />,
       },
+      {
+        path: "/green-card/create",
+        element: <CreateGreenCard />,
+      },
+      {
+        path: "/green-card/confirm",
+        element: <ConfirmGreenCard />,
+      },
+      {
+        path: "/green-card/verify",
+        element: <VerifyGreenCard />,
+      },
+      {
+        path: "/green-card/download/:fileId",
+        element: <DownloadGreenCard />,
+      },
     ],
   },
 ]);
