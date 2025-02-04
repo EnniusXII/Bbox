@@ -7,9 +7,9 @@ const router = express.Router();
 
 router.use(setGridFS);
 
-router.route('/addGreenCard').post(protect, addGreenCard);
-router.route('/confirmGreenCard').post(protect, confirmGreenCard)
-router.route('/verification/:fileId').get(downloadGreenCard);
+router.route('/create').post(protect, addGreenCard);
+router.route('/confirm').post(protect, confirmGreenCard)
+router.route('/download/:fileId').get(downloadGreenCard);
 router.route('/verify/:insuranceId').get(verifyGreenCard)
 
 export default router;
