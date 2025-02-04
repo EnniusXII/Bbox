@@ -1,36 +1,35 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+import { createGreenCard } from "../services/HttpClient";
+import { toast } from "react-toastify";
 
 const CreateGreenCard = () => {
   const [insuredName, setInsuredName] = useState("");
   const [validityFrom, setValidityFrom] = useState("");
   const [validityTo, setValidityTo] = useState("");
-  const [insuranceId, setInsuranceId] = useState("");
-  const [hash, setHash] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    const token = localStorage.getItem("token"); // Get the JWT token
+
+    if (!token) {
+      toast.error("You must be logged in to create a Green Card.");
+      return;
+    }
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/addGreenCard`, {
+      const greenCardData = {
         insured: { name: insuredName },
         validity: { from: validityFrom, to: validityTo },
-      });
+      };
 
-      setInsuranceId(response.data.insuranceId);
-      setHash(response.data.hash);
-      alert("Green Card created! Proceed to store hash on blockchain.");
-      setLoading(false);
+      const response = await createGreenCard(greenCardData, token);
+      toast.success("Green Card created successfully!");
+      navigate(`/green-card/confirm?insuranceId=${response.insuranceId}&hash=${response.hash}`);
     } catch (error) {
       console.error("Error creating Green Card:", error);
-      alert("Failed to create Green Card.");
-      setLoading(false);
+      toast.error(error);
     }
   };
 
@@ -41,18 +40,8 @@ const CreateGreenCard = () => {
         <input type="text" placeholder="Insured Name" value={insuredName} onChange={(e) => setInsuredName(e.target.value)} required />
         <input type="date" value={validityFrom} onChange={(e) => setValidityFrom(e.target.value)} required />
         <input type="date" value={validityTo} onChange={(e) => setValidityTo(e.target.value)} required />
-        <button type="submit" disabled={loading}>{loading ? "Creating..." : "Generate Insurance ID"}</button>
+        <button type="submit">Generate Insurance ID</button>
       </form>
-
-      {insuranceId && (
-        <div>
-          <p><strong>Insurance ID:</strong> {insuranceId}</p>
-          <p><strong>Hash:</strong> {hash}</p>
-          <button onClick={() => navigate(`/green-card/confirm?insuranceId=${insuranceId}&hash=${hash}`)}>
-            Proceed to Confirm on Blockchain
-          </button>
-        </div>
-      )}
     </div>
   );
 };

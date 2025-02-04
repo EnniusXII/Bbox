@@ -199,3 +199,69 @@ export const markNotificationAsRead = async (notificationId) => {
 
   return response.data;
 };
+
+export const createGreenCard = async (greenCardData, token) => {
+  try {
+    const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/create`, greenCardData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    })
+    return response.data;
+  } catch (err) {
+    console.error('Error creating Green Card: ', err);
+    throw err.response?.data?.message ||'Failed to create Green Card';
+  }
+} 
+
+export const confirmGreenCard = async (insuranceId, transactionHash, hash, token) => {
+  try {
+    const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/confirm`, {insuranceId, transactionHash, hash}, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    })
+
+    return response.data;
+  } catch (err) {
+    console.error('Error confirming Green Card: ', err);
+    throw err.response?.data.message || 'Failed to confirm Green Card';
+  }
+}
+
+export const verifyGreenCard = async (insuranceId, token) => {
+  try {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify/${insuranceId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    })
+
+    return response.data;
+  } catch (err) {
+    console.error('Error verifying Green Card: ', err);
+    throw err.response?.data.message || 'Failed to verify Green Card';
+  }
+}
+
+export const downloadGreenCard = async (fileId, token) => {
+  try {
+    const response = await axios.get(`${BACKEND_URL}/api/v1/green-card/download/${fileId}`, {
+      responseType: 'blob',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }
+    })
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `green_card_${fileId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (err) {
+    console.error('Failed downloading Green Card: ', err);
+    throw err.response?.data.message || 'Failed to download Green Card';
+  }
+}

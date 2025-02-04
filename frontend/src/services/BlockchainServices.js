@@ -8,7 +8,7 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const BBOX_CONTRACT = "0xc761F8E6Cb9af69C49ef3EaA1140b07AAd8056e9";
 const GREEN_CARD_CONTRACT = "0xE3D49AD6C419A03da46e338607AAd3de788da27d";
 
-export const connectToMetaMask = async () => {
+export const connectToMetaMask = async (contractType = 'BBOX') => {
   if (!window.ethereum) {
     throw new Error("MetaMask is not installed. Please install it to use this feature.");
   }
@@ -27,13 +27,15 @@ export const connectToMetaMask = async () => {
 
     console.log("Signer Address:", await signer.getAddress());
 
-    let contractAddress;
+    let contractAddress, abi;
     if(contractType === 'GREEN_CARD') {
       contractAddress = GREEN_CARD_CONTRACT;
       abi = greenCardAbi;
-    } else {
+    } else if (contractType === 'BBOX'){
       contractAddress = BBOX_CONTRACT;
       abi = bboxAbi;
+    } else {
+      throw new Error(`Invalid contractType: ${contractType}. Expected 'BBOX' or 'GREEN_CARD'.`);
     }
 
     // Return the contract instance with the signer
@@ -46,7 +48,7 @@ export const connectToMetaMask = async () => {
 
 export const recordVerification = async ({requestId, userAddress, licenseType, isVerified}) => {
   try {
-    const contract = await connectToMetaMask(BBOX_CONTRACT);
+    const contract = await connectToMetaMask('BBOX');
 
     // Interact with the contract
     const tx = await contract.recordVerification(requestId, userAddress, licenseType, isVerified);
@@ -69,7 +71,7 @@ export const recordVerification = async ({requestId, userAddress, licenseType, i
 
 export const getVerificationStatus = async (requestId) => {
   try {
-    const contract = await connectToMetaMask(BBOX_CONTRACT);
+    const contract = await connectToMetaMask('BBOX');
     const [isVerified, licenseType, timestamp, userAddress] = await contract.getVerificationStatus(requestId);
 
     // Return an object with descriptive keys for better clarity
@@ -100,7 +102,7 @@ export const storeGreenCardHash = async ({insuranceID, hash}) => {
   }
 };
 
-export const confirmGreenCrard = async ({insuranceId, txHash}) => {
+export const confirmGreenCard = async ({insuranceId, txHash}) => {
   try {
     const contract = await connectToMetaMask('GREEN_CARD');
     const [storedHash] = await contract.getHash(insuranceId);

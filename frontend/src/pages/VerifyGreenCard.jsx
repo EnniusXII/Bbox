@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { getStoredHash } from "../utils/blockchainServices";
+import { getStoredHash } from "../services/BlockchainServices";
 import { useNavigate } from "react-router-dom";
 
 const VerifyGreenCard = () => {

@@ -13,6 +13,10 @@ import { AddLicenses } from "./pages/AddLicenses";
 import { VerificationPage } from "./pages/VerificationPage";
 import { RequestsPage } from "./pages/RequestsPage";
 import { RequestInfo } from "./components/RequestInfo";
+import CreateGreenCard from './pages/CreateGreenCard';
+import ConfirmGreenCard from './pages/ConfirmGreenCard';
+import VerifyGreenCard from './pages/VerifyGreenCard';
+import DownloadGreenCard from './pages/DownloadGreenCard';
 
 export const router = createBrowserRouter([
   {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { storeGreenCardHash, confirmGreenCard } from "../utils/blockchainServices";
+import { confirmGreenCard } from "../services/HttpClient";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const ConfirmGreenCard = () => {
   const [searchParams] = useSearchParams();
@@ -12,24 +13,32 @@ const ConfirmGreenCard = () => {
 
   useEffect(() => {
     if (!insuranceId || !hash) {
-      alert("Missing Insurance ID or Hash");
+      toast.error("Missing Insurance ID or Hash");
       navigate("/green-card/create");
     }
   }, [insuranceId, hash, navigate]);
 
   const handleConfirm = async () => {
     setLoading(true);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      toast.error("You must be logged in to confirm the Green Card.");
+      return;
+    }
+
     try {
-      const txHash = await storeGreenCardHash({ insuranceId, hash });
-      setTransactionHash(txHash);
+      // Simulating a transaction hash (this should be replaced with your blockchain integration)
+      const blockchainTransactionHash = `0x${Math.random().toString(16).substr(2, 64)}`;
 
-      await confirmGreenCard({ insuranceId, transactionHash: txHash, hash });
+      await confirmGreenCard(insuranceId, blockchainTransactionHash, hash, token);
+      setTransactionHash(blockchainTransactionHash);
 
-      alert("Green Card confirmed!");
+      toast.success("Green Card confirmed!");
       navigate("/green-card/verify");
     } catch (error) {
-      console.error("Error storing hash:", error);
-      alert("Failed to confirm Green Card.");
+      console.error("Error confirming Green Card:", error);
+      toast.error(error);
     }
     setLoading(false);
   };
