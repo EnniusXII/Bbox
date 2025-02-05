@@ -5,35 +5,52 @@ import { createGreenCard } from '../utils/createPDF.mjs';
 import mongoose from 'mongoose';
 import { v4 as uuid} from 'uuid';
 
-export const confirmGreenCard = asyncHandler(async (req, res, next)=>{
+export const confirmGreenCard = asyncHandler(async (req, res) => {
   try {
-    const {insuranceId, transactionHash, insured, validity, hash} = req.body;
+    console.log("📌 Incoming confirmation request:", req.body);
 
-    if(!insuranceId || !transactionHash || !hash) {
-      return res.status(400).json({ success: false, message: '`insuranceId`, `transactionHash`, and `hash` are required.'})
+    const { referenceId, transactionHash } = req.body;
+    
+    if (!referenceId || !transactionHash) {
+      console.error("❌ Missing required fields in confirmation request");
+      return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
-    const existingCard = await GreenCard.findOne({referenceId: insuranceId});
-    if(existingCard) {
-      return res.status(400).json({success:false, message: 'Green Card already exists for this insurance id.'})
+    // Find the Green Card entry in MongoDB by referenceId
+    const greenCard = await GreenCard.findOne({ referenceId });
+
+    if (!greenCard) {
+      console.error(`❌ No Green Card found with referenceId: ${referenceId}`);
+      return res.status(404).json({ success: false, message: "Green Card not found" });
     }
 
-    const fileName = `green_card_${hash.slice(0, 8)}.pdf`;
-    const result = await createGreenCard(req.body, hash, req.gfs, fileName);
-
-    const greenCard = new GreenCard({referenceId: insuranceId, insured, validity, hash, transactionHash, fileId: result.fileId})
+    // Update the Green Card with the transactionHash
+    greenCard.transactionHash = transactionHash;
     await greenCard.save();
 
-    res.status(201).json({success:true, message: 'Green Card stored successfully!', greenCard})
-  } catch (err) {
-    console.error('Error confirming Green Card: ', err);
-    res.status(500).json({success:false, error: 'Error confirming Green Card: ', details: err.message})
+    console.log(`✅ Green Card ${referenceId} confirmed on-chain with tx: ${transactionHash}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Green Card confirmed successfully",
+      greenCard,
+    });
+
+  } catch (error) {
+    console.error("❌ Error confirming Green Card:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
   }
-})
+});
 
 export const addGreenCard = asyncHandler(async (req, res, next) => {
-  try{
-    const { insured, validity } = req.body;
+  try {
+    console.log("📌 Incoming Green Card creation request:", req.body);
+
+    const { insured, validity, insurance } = req.body;
 
     if (!insured || !insured.name) {
       return res.status(400).json({
@@ -49,21 +66,55 @@ export const addGreenCard = asyncHandler(async (req, res, next) => {
       });
     }
 
-    const insuranceId = uuid();
+    if (!insurance || !insurance.companyName) {
+      return res.status(400).json({
+        success: false,
+        message: '`insurance.compnayName` is required.',
+      });
+    }
 
-    const hash = generateHash({ insuranceId, insured, validity });
+    const referenceId = uuid(); // Generate unique reference ID
+    const hash = generateHash(req.body); // Generate hash from Green Card data
+
+    console.log("📌 Generating Green Card PDF...");
+    const fileName = `green_card_${hash.slice(0, 8)}.pdf`;
+    const result = await createGreenCard(req.body, hash, req.gfs, fileName);
+
+    if (!result.fileId) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to create PDF and store in database",
+      });
+    }
+
+    console.log(`✅ PDF successfully stored in GridFS with fileId: ${result.fileId}`);
+
+    // Create Green Card in MongoDB without transactionHash
+    const greenCard = new GreenCard({
+      insured: { name: insured.name },
+      validity: {
+        from: validity.from,
+        to: validity.to,
+      },
+      insurance: { companyName: insurance.companyName },
+      hash,
+      fileId: result.fileId,
+      referenceId, 
+      transactionHash: null, // Will be updated later when confirmed on-chain
+    });
+
+    await greenCard.save();
 
     res.status(201).json({
       success: true,
       message: 'Green Card created successfully',
-      insuranceId,
+      referenceId,
       hash,
     });
   } catch (error) {
-    console.error('Error creating Green Card:', error);
+    console.error('❌ Error creating Green Card:', error);
     res.status(500).json({
       success: false,
-      statusCode: 500,
       error: 'Error creating Green Card',
       details: error.message,
     });
@@ -97,26 +148,33 @@ export async function downloadGreenCard(req, res) {
   }
 }
 
-export const verifyGreenCard = asyncHandler(async(req, res, next) => {
+export const verifyGreenCard = asyncHandler(async (req, res) => {
   try {
-    const {insuranceId} = req.params;
+    const { referenceId } = req.body;
+    console.log(`📌 Incoming verification request for Reference ID: ${referenceId}`);
 
-    if(!insuranceId) {
-      return res.status(400).json({success:false, message: "`insuranceId` is required."})
+    // Retrieve Green Card from MongoDB
+    const greenCard = await GreenCard.findOne({ referenceId });
+
+    if (!greenCard) {
+      console.error("❌ Green Card not found in database.");
+      return res.status(404).json({ success: false, message: "Green Card not found." });
     }
 
-    const greenCard = await GreenCard.findOne({referenceId: insuranceId});
+    console.log("✅ Green Card found:", greenCard);
 
-    if(!greenCard) {
-      return res.status(400).json({success: false, message: 'Green Card not found.'});
-    }
+    // Return only the stored hash; the frontend will handle blockchain verification
+    res.json({
+      success: true,
+      storedHash: greenCard.hash,
+      message: "✅ Hash retrieved successfully. Perform verification in frontend.",
+    });
 
-    res.status(200).json({success: true, hash: greenCard.hash});
-  } catch (err) {
-    console.error('Error verifying Green Card: ', err);
-    res.status(500).json({success: false, error: 'Error verifying Green Card.', details: err.message})
+  } catch (error) {
+    console.error("❌ Error retrieving stored Green Card hash:", error);
+    res.status(500).json({ success: false, message: "Error retrieving stored Green Card hash." });
   }
-})
+});
 
 const generateHash = (data) => {
   const jsonData = JSON.stringify(data);

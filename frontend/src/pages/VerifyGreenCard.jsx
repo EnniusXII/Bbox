@@ -1,34 +1,53 @@
-import React, { useState } from "react";
-import { getStoredHash } from "../services/BlockchainServices";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { verifyGreenCard } from "../services/BlockchainServices";
+import { toast } from "react-toastify";
 
 const VerifyGreenCard = () => {
-  const [insuranceId, setInsuranceId] = useState("");
+  const [referenceId, setReferenceId] = useState("");
   const [verificationResult, setVerificationResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const handleVerify = async () => {
-    setLoading(true);
-    try {
-      const storedHash = await getStoredHash(insuranceId);
-      alert(`Stored Hash Retrieved: ${storedHash}`);
-      setVerificationResult("Verification Successful");
-    } catch (error) {
-      console.error("Verification failed:", error);
-      setVerificationResult("Verification Failed");
+    if (!referenceId) {
+      toast.error("Please enter a Reference ID.");
+      return;
     }
-    setLoading(false);
+
+    try {
+      setLoading(true);
+      const result = await verifyGreenCard(referenceId);
+      setVerificationResult(result);
+
+      toast.success(result.message);
+    } catch (error) {
+      toast.error("Verification failed.");
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div>
       <h2>Verify Green Card</h2>
-      <input type="text" placeholder="Enter Insurance ID" value={insuranceId} onChange={(e) => setInsuranceId(e.target.value)} />
+      <input
+        type="text"
+        placeholder="Enter Reference ID"
+        value={referenceId}
+        onChange={(e) => setReferenceId(e.target.value)}
+      />
       <button onClick={handleVerify} disabled={loading}>
-        {loading ? "Verifying..." : "Verify"}
+        {loading ? "Verifying..." : "Verify Green Card"}
       </button>
-      {verificationResult && <p>{verificationResult}</p>}
+
+      {verificationResult && (
+        <div>
+          <h3>Verification Result:</h3>
+          <p><strong>Status:</strong> {verificationResult.verified ? "✅ Valid" : "❌ Invalid"}</p>
+          <p><strong>Stored Hash:</strong> {verificationResult.storedHash}</p>
+          <p><strong>Computed Hash:</strong> {verificationResult.computedHash}</p>
+        </div>
+      )}
     </div>
   );
 };

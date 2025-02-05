@@ -4,24 +4,34 @@ import QRCode from 'qrcode';
 export const createGreenCard = async (data, hash, gfs, fileName) => {
   return new Promise(async (resolve, reject) => {
     try {
+      console.log("📌 Generating QR Code...");
       let qrBuffer;
       try {
         qrBuffer = await QRCode.toBuffer(hash, { width: 150 });
+        console.log("✅ QR Code generated successfully.");
       } catch (error) {
-        console.error('Error generating QR code:', error);
-        throw new Error('Failed to generate QR code');
+        console.error('❌ Error generating QR code:', error);
+        return reject({ message: 'Failed to generate QR code', error });
       }
 
+      console.log("📌 Creating PDF document...");
       const doc = new PDFDocument();
       const writeStream = gfs.openUploadStream(fileName);
 
       doc.pipe(writeStream);
 
+      // ✅ Verify `data` structure before using it
+      if (!data.insured || !data.vehicle || !data.insurance || !data.validity) {
+        console.error("❌ Missing required fields in `data`:", data);
+        return reject({ message: "Missing required data fields" });
+      }
+
+      // Add content to PDF
       doc.fontSize(20).text('Grönt Kort för Fordonsförsäkring', { align: 'center' });
       doc.moveDown();
 
       doc.fontSize(12).text(`Försäkringstagare: ${data.insured.name}`);
-      doc.text(`Adress: ${data.insured.address}`);
+      doc.text(`Adress: ${data.insured.address || 'N/A'}`);
       doc.text(`Registreringsnummer: ${data.vehicle.registrationNumber}`);
       doc.text(`Fordonskategori: ${data.vehicle.category}`);
       doc.text(`Försäkringsbolag: ${data.insurance.companyName}`);
@@ -30,7 +40,7 @@ export const createGreenCard = async (data, hash, gfs, fileName) => {
       doc.moveDown();
 
       doc.text('Gäller i följande länder:');
-      data.countriesCovered.forEach((country) => {
+      (data.countriesCovered || []).forEach((country) => {
         doc.text(`- ${country}`);
       });
 
@@ -39,8 +49,13 @@ export const createGreenCard = async (data, hash, gfs, fileName) => {
       doc.moveDown().text(`Hash: ${hash}`, { align: 'center' });
 
       doc.end();
+      console.log("✅ PDF document created successfully.");
+
+      // ✅ Log when upload starts
+      console.log("📡 Uploading PDF to GridFS...");
 
       writeStream.on('finish', () => {
+        console.log("✅ PDF successfully stored in GridFS with fileId:", writeStream.id);
         resolve({
           message: 'PDF with QR code created and stored successfully',
           fileId: writeStream.id,
@@ -48,17 +63,19 @@ export const createGreenCard = async (data, hash, gfs, fileName) => {
       });
 
       writeStream.on('error', (error) => {
-        console.error('Error during GridFS upload:', error);
+        console.error('❌ Error during GridFS upload:', error);
         reject({
           message: 'Error creating PDF',
           error,
         });
       });
+
     } catch (error) {
+      console.error("❌ Unexpected error while creating PDF:", error);
       reject({
         message: 'Error creating PDF',
         error,
       });
     }
-  })
-}
+  });
+};

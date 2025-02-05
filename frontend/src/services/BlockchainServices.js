@@ -17,15 +17,13 @@ export const connectToMetaMask = async (contractType = 'BBOX') => {
     // Request account access
     const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
 
-    console.log("Connected Accounts:", accounts);
-
     // Create a provider connected to MetaMask
     const provider = new ethers.BrowserProvider(window.ethereum);
 
     // Use the first account returned by MetaMask
     const signer = await provider.getSigner(accounts[0]);
 
-    console.log("Signer Address:", await signer.getAddress());
+    const walletAddress = await signer.getAddress();
 
     let contractAddress, abi;
     if(contractType === 'GREEN_CARD') {
@@ -39,7 +37,7 @@ export const connectToMetaMask = async (contractType = 'BBOX') => {
     }
 
     // Return the contract instance with the signer
-    return new ethers.Contract(contractAddress, abi, signer);
+    return new ethers.Contract(contractAddress, abi, signer), walletAddress;
   } catch (error) {
     console.error("MetaMask connection failed:", error);
     throw error;
@@ -87,6 +85,27 @@ export const getVerificationStatus = async (requestId) => {
   }
 };
 
+export const createGreenCard = async (greenCardData) => {
+  try {
+    const token = localStorage.getItem("token"); // Get token from local storage
+    if (!token) {
+      throw new Error("No authentication token found.");
+    }
+
+    const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/create`, greenCardData, {
+      headers: {
+        Authorization: `Bearer ${token}`, // Attach token
+      },
+    });
+
+    console.log("✅ Green Card created successfully:", response.data);
+    return response.data; // Contains `insuranceId` and `hash`
+  } catch (error) {
+    console.error("❌ Failed to create Green Card:", error);
+    throw error;
+  }
+};
+
 export const storeGreenCardHash = async ({insuranceID, hash}) => {
   try {
     const contract = await connectToMetaMask('GREEN_CARD');
@@ -102,26 +121,92 @@ export const storeGreenCardHash = async ({insuranceID, hash}) => {
   }
 };
 
-export const confirmGreenCard = async ({insuranceId, txHash}) => {
+export const confirmGreenCard = async (referenceId, hash) => {
   try {
-    const contract = await connectToMetaMask('GREEN_CARD');
-    const [storedHash] = await contract.getHash(insuranceId);
-
-    if(!storedHash || storedHash === ''){
-      throw new Error('Green Card hash not found on-chain');
+    if (!window.ethereum) {
+      throw new Error("MetaMask is not installed.");
     }
 
-    const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/confirmGreenCard`, {
-      insuranceId, txHash
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(GREEN_CARD_CONTRACT, greenCardAbi, signer);
+
+    console.log(`📡 Sending transaction to store hash on-chain: referenceId=${referenceId}, hash=${hash}`);
+    
+    // Call smart contract function
+    const tx = await contract.storeHash(referenceId, hash);
+    await tx.wait(); // Wait for transaction confirmation
+
+    console.log("✅ Transaction successful:", tx.hash);
+
+    // Ensure transaction hash is available
+    if (!tx.hash) {
+      throw new Error("Transaction hash is missing from receipt.");
+    }
+
+    console.log("✅ Transaction hash:", tx.hash);
+
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("No authentication token found.");
+
+    // Send the referenceId and transactionHash to the backend
+    const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/confirm`, {
+      referenceId,  // Use the original referenceId
+      transactionHash: tx.hash, // Correctly accessing transaction hash
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
     });
 
-    console.log('Green Card confirmed: ', response.data);
-    return response.data;
-  } catch (err) {
-    console.error('Error confirming Green Card: ', err);
-    throw err;
+    console.log("✅ Green Card confirmed in backend:", response.data);
+    
+    return tx.hash; // Return correct transaction hash
+  } catch (error) {
+    console.error("❌ Error storing Green Card hash on-chain:", error);
+    throw error;
   }
-}
+};
+
+export const verifyGreenCard = async (referenceId) => {
+  try {
+    // 1️⃣ Fetch the stored hash from the backend
+    console.log(`📡 Fetching stored hash from backend for referenceId: ${referenceId}`);
+    const backendResponse = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify`);
+
+    if (!backendResponse.data.success) {
+      throw new Error("Green Card not found in the database.");
+    }
+
+    const storedHash = backendResponse.data.storedHash;
+    console.log("✅ Stored Hash from Backend:", storedHash);
+
+    // 2️⃣ Fetch the stored hash from the blockchain
+    console.log(`📡 Fetching stored hash from blockchain for referenceId: ${referenceId}`);
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(GREEN_CARD_CONTRACT, greenCardAbi, signer);
+
+    const [onChainHash, timestamp] = await contract.getHash(referenceId);
+    console.log("✅ Stored Hash from Blockchain:", onChainHash);
+
+    // 3️⃣ Compare the hashes
+    const isValid = storedHash === onChainHash;
+
+    return {
+      success: true,
+      verified: isValid,
+      storedHash,
+      computedHash: onChainHash,
+      message: isValid ? "✅ Green Card is valid." : "❌ Green Card is invalid.",
+    };
+
+  } catch (error) {
+    console.error("❌ Error verifying Green Card:", error);
+    return { success: false, message: "Verification failed." };
+  }
+};
 
 export const getStoredHash = async (insuranceId) => {
   try {

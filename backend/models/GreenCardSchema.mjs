@@ -9,9 +9,12 @@ const greenCardSchema = new mongoose.Schema({
     from: { type: Date, required: true },
     to: { type: Date, required: true },
   },
+  insurance:{ 
+  companyName: { type: String, required: true },
+  },
   hash: { type: String, required: true },
   fileId: { type: mongoose.Types.ObjectId, required: true },
-  transactionHash: { type: String, required: true }
+  transactionHash: { type: String, default: null }
 });
 
 greenCardSchema.pre('save', function(next) {

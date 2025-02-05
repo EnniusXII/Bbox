@@ -9,6 +9,7 @@ export const Header = () => {
     const { isLoggedIn, logout } = useAuth();
     const [menuOpen, setMenuOpen] = useState(false);
     const [walletAddress, setWalletAddress] = useState(null);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     const toggleMenu = () => {
@@ -17,9 +18,13 @@ export const Header = () => {
 
     const connectWallet  = async () => {
       try {
-          await connectToMetaMask();
-          setWalletAddress(accounts[0]);
+        const {walletAddress} = await connectToMetaMask();
+
+        if(walletAddress) {
+          setWalletAddress(walletAddress);
+          localStorage.setItem('walletAddress', walletAddress);
           toast.success("Wallet connected successfully!");
+        }
       } catch (error) {
           toast.error("Failed to connect to MetaMask.");
           console.error("MetaMask connection error:", error);
@@ -35,10 +40,30 @@ export const Header = () => {
               const accounts = await window.ethereum.request({ method: 'eth_accounts' });
               if (accounts.length > 0) {
                   setWalletAddress(accounts[0]); // Set the first connected account
+              } else {
+                const storedWallet = localStorage.getItem('walletAddress');
+                if(storedWallet) {
+                  setWalletAddress(storedWallet);
+                }
               }
           }
+          setLoading(false);
       };
       checkWalletConnection();
+
+      window.ethereum?.on("accountsChanged", (accounts) => {
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+          localStorage.setItem("walletAddress", accounts[0]);
+        } else {
+          setWalletAddress(null);
+          localStorage.removeItem("walletAddress");
+        }
+      });
+    
+      return () => {
+        window.ethereum?.removeListener("accountsChanged", checkWalletConnection);
+      };
     }, []);
 
   return (
@@ -58,16 +83,14 @@ export const Header = () => {
         <div className='login-btns-container'>
           {/* MetaMask Connect Button */}
           <div className="metamask-btn-container">
-              {walletAddress ? (
-                  <button className="wallet-btn">
-                      {formatAddress(walletAddress)}
-                  </button>
-              ) : (
-                  <button onClick={connectWallet}>
-                      Connect Wallet
-                  </button>
-              )}
-          </div>
+        {loading ? (
+          <button disabled>Loading...</button> // ✅ Show loading until wallet is detected
+        ) : walletAddress ? (
+          <button className="wallet-btn">{formatAddress(walletAddress)}</button>
+        ) : (
+          <button onClick={connectWallet}>Connect Wallet</button>
+        )}
+      </div>
 
           {!isLoggedIn && (
               <div>
