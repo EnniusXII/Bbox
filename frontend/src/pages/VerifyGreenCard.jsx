@@ -45,7 +45,7 @@ const VerifyGreenCard = () => {
           <h3>Verification Result:</h3>
           <p><strong>Status:</strong> {verificationResult.verified ? "✅ Valid" : "❌ Invalid"}</p>
           <p><strong>Stored Hash:</strong> {verificationResult.storedHash}</p>
-          <p><strong>Computed Hash:</strong> {verificationResult.computedHash}</p>
+          <p><strong>Computed Hash:</strong> {verificationResult.expectedHash}</p>
         </div>
       )}
     </div>

@@ -10,6 +10,6 @@ router.use(setGridFS);
 router.route('/create').post(protect, addGreenCard);
 router.route('/confirm').post(protect, confirmGreenCard)
 router.route('/download/:fileId').get(downloadGreenCard);
-router.route('/verify/').get(verifyGreenCard)
+router.route('/verify').post(verifyGreenCard)
 
 export default router;

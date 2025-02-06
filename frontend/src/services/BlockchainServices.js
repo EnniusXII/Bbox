@@ -121,7 +121,7 @@ export const storeGreenCardHash = async ({insuranceID, hash}) => {
   }
 };
 
-export const confirmGreenCard = async (referenceId, hash) => {
+export const confirmGreenCard = async (referenceId, initialHash) => {
   try {
     if (!window.ethereum) {
       throw new Error("MetaMask is not installed.");
@@ -131,28 +131,26 @@ export const confirmGreenCard = async (referenceId, hash) => {
     const signer = await provider.getSigner();
     const contract = new ethers.Contract(GREEN_CARD_CONTRACT, greenCardAbi, signer);
 
-    console.log(`📡 Sending transaction to store hash on-chain: referenceId=${referenceId}, hash=${hash}`);
-    
-    // Call smart contract function
-    const tx = await contract.storeHash(referenceId, hash);
-    await tx.wait(); // Wait for transaction confirmation
+    console.log(`📡 Storing hash on-chain: referenceId=${referenceId}, hash=${initialHash}`);
 
-    console.log("✅ Transaction successful:", tx.hash);
+    // Call smart contract function with the initial hash
+    const tx = await contract.storeHash(referenceId, initialHash);
+    const receipt = await tx.wait();
 
-    // Ensure transaction hash is available
-    if (!tx.hash) {
-      throw new Error("Transaction hash is missing from receipt.");
-    }
+    console.log("✅ Transaction successful:", receipt);
 
-    console.log("✅ Transaction hash:", tx.hash);
+    // Extract the transaction hash from the receipt
+    const transactionHash = receipt.hash; // This is the correct field for the TX hash
+
+    console.log("✅ Transaction hash:", transactionHash);
 
     const token = localStorage.getItem("token");
     if (!token) throw new Error("No authentication token found.");
 
-    // Send the referenceId and transactionHash to the backend
+    // Send referenceId and transactionHash to backend for storage
     const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/confirm`, {
-      referenceId,  // Use the original referenceId
-      transactionHash: tx.hash, // Correctly accessing transaction hash
+      referenceId, // Make sure this is correctly passed
+      transactionHash, // Make sure this is correctly passed
     }, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -162,7 +160,7 @@ export const confirmGreenCard = async (referenceId, hash) => {
 
     console.log("✅ Green Card confirmed in backend:", response.data);
     
-    return tx.hash; // Return correct transaction hash
+    return transactionHash;
   } catch (error) {
     console.error("❌ Error storing Green Card hash on-chain:", error);
     throw error;
@@ -171,35 +169,38 @@ export const confirmGreenCard = async (referenceId, hash) => {
 
 export const verifyGreenCard = async (referenceId) => {
   try {
-    // 1️⃣ Fetch the stored hash from the backend
-    console.log(`📡 Fetching stored hash from backend for referenceId: ${referenceId}`);
-    const backendResponse = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify`);
+    console.log(`📌 Retrieving stored hash from blockchain for referenceId=${referenceId}`);
 
-    if (!backendResponse.data.success) {
-      throw new Error("Green Card not found in the database.");
-    }
-
-    const storedHash = backendResponse.data.storedHash;
-    console.log("✅ Stored Hash from Backend:", storedHash);
-
-    // 2️⃣ Fetch the stored hash from the blockchain
-    console.log(`📡 Fetching stored hash from blockchain for referenceId: ${referenceId}`);
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
     const contract = new ethers.Contract(GREEN_CARD_CONTRACT, greenCardAbi, signer);
 
-    const [onChainHash, timestamp] = await contract.getHash(referenceId);
-    console.log("✅ Stored Hash from Blockchain:", onChainHash);
+    // Retrieve stored hash from blockchain
+    const [storedHash, timestamp] = await contract.getHash(referenceId);
 
-    // 3️⃣ Compare the hashes
-    const isValid = storedHash === onChainHash;
+    console.log("✅ Stored Hash from Blockchain:", storedHash);
+
+    // Fetch expected hash from backend (stored during Green Card creation)
+    const backendResponse = await axios.post(`${BACKEND_URL}/api/v1/green-card/verify`, {referenceId});
+
+    if (!backendResponse.data.success) {
+      console.error("❌ Failed to retrieve expected hash from backend.");
+      return { success: false, message: "Failed to retrieve expected hash." };
+    }
+
+    const expectedHash = backendResponse.data.hash;
+
+    console.log("✅ Expected Hash from Initial Creation:", expectedHash);
+
+    // Compare blockchain stored hash with expected hash
+    const isValid = storedHash === expectedHash;
 
     return {
       success: true,
       verified: isValid,
       storedHash,
-      computedHash: onChainHash,
-      message: isValid ? "✅ Green Card is valid." : "❌ Green Card is invalid.",
+      expectedHash,
+      message: isValid ? "✅ Green Card is valid." : "❌ Green Card is invalid."
     };
 
   } catch (error) {
@@ -210,7 +211,7 @@ export const verifyGreenCard = async (referenceId) => {
 
 export const getStoredHash = async (insuranceId) => {
   try {
-    const response = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify/${insuranceId}`);
+    const response = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify`);
     return response.data.hash;
   } catch (err) {
     console.error('Failed to get stored hash: ', err);
