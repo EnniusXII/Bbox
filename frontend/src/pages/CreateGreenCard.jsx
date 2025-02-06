@@ -8,7 +8,7 @@ const CreateGreenCard = () => {
     vehicle: { registrationNumber: "", category: "" },
     insurance: { companyName: "" },
     validity: { from: "", to: "" },
-    countriesCovered: "",
+    countriesCovered: [],
   });
 
   const [referenceId, setReferenceId] = useState(null);
