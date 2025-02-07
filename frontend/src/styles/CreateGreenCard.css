@@ -1,0 +1,72 @@
+.green-card-container{
+    width: 80vw;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .form-container{
+    width: 80%;
+    height: 50%;
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.insured-control, .vehicle-control, .insurance-control, .validity-control{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+}
+
+.form-control{
+    display: flex;
+    flex-direction: column;
+}
+
+
+input{
+  width: 15rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.countries-control{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.country-btn{
+    width: 15rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    align-self: last baseline;
+    margin-bottom: 10px;
+}
+
+.countries-covered ul{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    list-style: none;
+    padding: 0;
+}
+
+  
+.covered-btn{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 10rem;
+    align-items: center;
+    margin: 0.5rem 0;
+}

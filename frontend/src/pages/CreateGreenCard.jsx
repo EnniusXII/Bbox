@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createGreenCard, confirmGreenCard } from "../services/BlockchainServices";
 import { toast } from "react-toastify";
+import '../styles/CreateGreenCard.css'
 
 const CreateGreenCard = () => {
   const [formData, setFormData] = useState({
@@ -12,18 +13,18 @@ const CreateGreenCard = () => {
   });
 
   const [referenceId, setReferenceId] = useState(null);
+  const [newCountry, setNewCountry] = useState('');
   const [hash, setHash] = useState(null);
   const [created, setCreated] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
-  // Handle input changes (nested objects and array fields)
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "countriesCovered") {
       setFormData((prev) => ({
         ...prev,
-        [name]: value, // Store as a comma-separated string
+        [name]: value,
       }));
     } else {
       const keys = name.split(".");
@@ -39,6 +40,36 @@ const CreateGreenCard = () => {
         return { ...updatedForm };
       });
     }
+  };
+
+  const handleAddCountry = (e) => {
+    if(e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')){
+      e.preventDefault();
+
+      if (!newCountry.trim()) {
+        toast.error("Country name cannot be empty.");
+        return;
+      }
+  
+      if (formData.countriesCovered.includes(newCountry.trim())) {
+        toast.error("Country already added.");
+        return;
+      }
+  
+      setFormData((prev) => ({
+        ...prev,
+        countriesCovered: [...prev.countriesCovered, newCountry.trim()],
+      }));
+  
+      setNewCountry("");
+    }
+  };
+
+  const handleRemoveCountry = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      countriesCovered: prev.countriesCovered.filter((_, i) => i !== index),
+    }));
   };
 
   const handleCreateGreenCard = async () => {
@@ -94,39 +125,93 @@ const CreateGreenCard = () => {
   };
 
   return (
-    <div>
+    <div className="green-card-container">
       <h2>Create Green Card</h2>
-      
-      {/* Insured Details */}
-      <input type="text" name="insured.name" value={formData.insured.name} onChange={handleChange} placeholder="Insured Name" />
-      <input type="text" name="insured.address" value={formData.insured.address} onChange={handleChange} placeholder="Address" />
-      
-      {/* Vehicle Details */}
-      <input type="text" name="vehicle.registrationNumber" value={formData.vehicle.registrationNumber} onChange={handleChange} placeholder="Registration Number" />
-      <input type="text" name="vehicle.category" value={formData.vehicle.category} onChange={handleChange} placeholder="Vehicle Category" />
-      
-      {/* Insurance Company */}
-      <input type="text" name="insurance.companyName" value={formData.insurance.companyName} onChange={handleChange} placeholder="Insurance Company" />
-      
-      {/* Validity Period */}
-      <input type="date" name="validity.from" value={formData.validity.from} onChange={handleChange} />
-      <input type="date" name="validity.to" value={formData.validity.to} onChange={handleChange} />
-      
-      {/* Countries Covered */}
-      <input
-        type="text"
-        name="countriesCovered"
-        value={formData.countriesCovered}
-        onChange={handleChange}
-        placeholder="Countries Covered (comma separated)"
-      />
 
-      <button onClick={handleCreateGreenCard}>Create Green Card</button>
+      {!created ? (
+        <>
+          <div className="form-container">
+            <div className="insured-control">
+              <div className="form-control">
+                <label htmlFor="insured.name">Name: </label>
+                <input type="text" name="insured.name" value={formData.insured.name} onChange={handleChange} placeholder="Insured Name" />
+              </div>
+              <div className="form-control">
+                <label htmlFor="insured.address">Address: </label>
+                <input type="text" name="insured.address" value={formData.insured.address} onChange={handleChange} placeholder="Insured Address" />
+              </div>
+            </div>
 
-      {created && (
-        <button onClick={handleConfirmGreenCard} disabled={confirming}>
-          {confirming ? "Confirming..." : "Confirm & Store on Blockchain"}
-        </button>
+            <div className="vehicle-control">
+              <div className="form-control">
+                <label htmlFor="vehicle.registrationNumber">Registration Number: </label>
+                <input type="text" name="vehicle.registrationNumber" value={formData.vehicle.registrationNumber} onChange={handleChange} placeholder="Registration Number" />
+              </div>
+              <div className="form-control">
+                <label htmlFor="vehicle.category">Vehicle Category: </label>
+                <input type="text" name="vehicle.category" value={formData.vehicle.category} onChange={handleChange} placeholder="Vehicle Category" />
+              </div>
+            </div>
+
+            <div className="insurance-control">
+              <div className="form-control">
+                <label htmlFor="insurance.companyName">Insurance Company: </label>
+                <input type="text" name="insurance.companyName" value={formData.insurance.companyName} onChange={handleChange} placeholder="Insurance Company" />
+              </div>
+            </div>
+            
+            <div className="validity-control">
+              <div className="form-control">
+                <label htmlFor="validity.from">Valid From: </label>
+                <input type="date" name="validity.from" value={formData.validity.from} onChange={handleChange} />
+              </div>
+              <div className="form-control">
+                <label htmlFor="insured.name">Valid To: </label>
+                <input type="date" name="validity.to" value={formData.validity.to} onChange={handleChange} />
+              </div>
+            </div>
+
+            <div className="countries-control">
+            <div className="form-control">
+            <label>Countries Covered:</label>
+              <input
+                type="text"
+                value={newCountry}
+                onChange={(e) => setNewCountry(e.target.value)}
+                onKeyDown={handleAddCountry}
+                placeholder="Add a country"
+              />
+            </div>
+              <button className="country-btn" onClick={handleAddCountry}>Add Country</button>
+            </div>
+
+            <div className="countries-covered">
+              {formData.countriesCovered.length > 0 && (
+                <ul>
+                  {formData.countriesCovered.map((country, index) => (
+                    <li key={index} className="covered-list" style={{ display: "flex", alignItems: "center" }}>
+                      <button className="covered-btn" onClick={() => handleRemoveCountry(index)}>
+                        <p>{country}</p>
+                        <p>❌</p>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <button onClick={handleCreateGreenCard}>Create Green Card</button>
+          </div>
+        </>
+      ) : (
+        <div>
+          <h3>Green Card Created!</h3>
+          <p><strong>Reference ID:</strong> {referenceId}</p>
+          <p><strong>Hash:</strong> {hash}</p>
+          <button onClick={handleConfirmGreenCard} disabled={confirming}>
+            {confirming ? "Confirming..." : "Confirm & Store on Blockchain"}
+          </button>
+        </div>
       )}
     </div>
   );
