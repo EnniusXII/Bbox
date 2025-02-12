@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 const greenCardSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   referenceId: {type: String, required: true, unique: true}, 
   insured: {
     name: { type: String, required: true },

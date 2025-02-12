@@ -2,6 +2,8 @@ import { asyncHandler } from "../middleware/asyncHandler.mjs"; // Import the asy
 import ErrorResponse from "../models/ErrorResponseModel.mjs"; // Custom error handling class
 import DriverLicense from "../models/DriverLicenseSchema.mjs"; // DriverLicense schema/model for interacting with licenses
 import Notification from "../models/NotificationSchema.mjs"; // Notification schema/model for sending license verification requests
+import GreenCardNotification from "../models/GreenCardNotificationSchema.mjs";
+import GreenCard from "../models/GreenCardSchema.mjs";
 
 export const recordVerification = async (req, res) => {
     const { requestId, userAddress, licenseType, isVerified } = req.body;
@@ -129,3 +131,103 @@ export const declineLicenseVerification = asyncHandler(async (req, res, next) =>
         message: "Verification request has been declined."
     });
 });
+
+export const verifyGreenCard = asyncHandler(async(req, res, next) => {
+    try {
+        const {referenceId} = req.body;
+
+        const greenCard = await GreenCard.findOne({referenceId});
+
+        if(!greenCard) {
+            return res.status(404).json({success: false, message: 'Green Card not found.'});
+        }
+
+        const notification = await GreenCardNotification.create({
+            user: greenCard.user,
+            message: 'Verification request for Green Card. Do you want to share your information?',
+            requestId: greenCard._id,
+            status: 'pending'
+        })
+    } catch (err) {
+        
+    }
+});
+
+export const approveGreenCardVerification = asyncHandler(async(req, res, next) => {
+    const requestId = req.params.requestId;
+
+    if(!requestId) {
+        return next(new ErrorResponse('No request ID provided.', 400));
+    }
+
+    console.log('Approving verification for Green Card Request ID: ', requestId);
+
+    const notification = await GreenCardNotification.findById(requestId);
+    if(!notification) {
+        return next(new ErrorResponse('No verification request found for this ID.', 404));
+    }
+
+    const greenCard = await GreenCard.findOne({_id: notification.requestId});
+    if(!greenCard) {
+        return next(new ErrorResponse('No Green Card found for this request.', 404));
+    }
+
+    greenCard.isApproved = true;
+    await greenCard.save();
+
+    notification.status = 'approved';
+    await notification.save();
+
+    res.status(200).json({success: true,
+        message: 'Green Card verification approved.'
+    });
+});
+
+export const declineGreenCardVerification = asyncHandler(async(req, res, next) => {
+    const requestId = req.params.requestId;
+
+    console.log('Declining verification for Green Card Request ID: ', requestId);
+
+    const notification = await GreenCardNotification.findByIdAndUpdate(requestId, {status: 'declined'}, {new: true});
+    if(!notification) {
+        return next(new ErrorResponse('No verification request found for this ID.', 404));
+    }
+
+    res.status(200).json({success: true, message: 'Green Card verification declined.'});
+});
+
+export const recordGreenCardVerification = asyncHandler(async(req, res, next) => {
+    const {requestId, userAddress, isVerified} = req.body;
+
+    try {
+        console.log('Recording Green Card verification on-chain...');
+
+        const tx = await contract.recordGreenCardVerification(requestId, userAddress, 'GREEN_CARD', isVerified);
+        const receipt = await tx.wait();
+        const transactionHash = receipt.hash;
+
+        await GreenCardNotification.findByIdAndUpdate(requestId, {transactionHash});
+
+        res.status(200).json({success: true, message: 'Verification recorded on-chain', transactionHash});
+    } catch (err) {
+        res.status(500).json({success: false, message: err.message});
+    }
+})
+
+export const getGreenCardVerificationStatus = asyncHandler(async(req, res, next) => {
+    const {requestId} = req.params;
+
+    try {
+        console.log('Retrieving Green Card verification status...');
+
+        const notification = await GreenCardNotification.findById(requestId);
+
+        if(!notification) {
+            return next(new ErrorResponse('No verification request found for this ID: ', 404));
+        }
+
+        res.status(200).json({success: true, status: notification.status, message: `Verification request status: ${notification.status}`})
+    } catch (err) {
+        res.status(500).json({success: false, message: err.message});
+    }
+})

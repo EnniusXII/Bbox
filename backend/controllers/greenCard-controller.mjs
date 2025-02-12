@@ -38,8 +38,6 @@ export const confirmGreenCard = asyncHandler(async (req, res) => {
 
 export const addGreenCard = asyncHandler(async (req, res, next) => {
   try {
-    console.log("📌 Incoming Green Card creation request:", req.body);
-
     const { insured, validity, insurance } = req.body;
 
     if (!insured || !insured.name) {
@@ -63,10 +61,10 @@ export const addGreenCard = asyncHandler(async (req, res, next) => {
       });
     }
 
-    const referenceId = uuid(); // Generate unique reference ID
-    const hash = generateHash(req.body); // Generate hash from Green Card data
+    const referenceId = uuid();
+    const userId = req.user._id;
+    const hash = generateHash(req.body);
 
-    console.log("📌 Generating Green Card PDF...");
     const fileName = `green_card_${hash.slice(0, 8)}.pdf`;
     const result = await createGreenCard(req.body, hash, req.gfs, fileName);
 
@@ -79,8 +77,8 @@ export const addGreenCard = asyncHandler(async (req, res, next) => {
 
     console.log(`✅ PDF successfully stored in GridFS with fileId: ${result.fileId}`);
 
-    // Create Green Card in MongoDB without transactionHash
     const greenCard = new GreenCard({
+      user: userId,
       insured: { name: insured.name, address: insured.address },
       vehicle: { registrationNumber: insured.registrationNumber, category: insured.category },
       insurance: { companyName: insurance.companyName },
@@ -92,7 +90,7 @@ export const addGreenCard = asyncHandler(async (req, res, next) => {
       hash,
       fileId: result.fileId,
       referenceId, 
-      transactionHash: null, // Will be updated later when confirmed on-chain
+      transactionHash: null,
     });
 
     await greenCard.save();
