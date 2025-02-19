@@ -1,45 +1,33 @@
 import React, { useState } from 'react';
-import { verifyDriverLicense } from '../services/HttpClient';
-import { useNavigate } from 'react-router-dom';
+import { LicenseVerification } from '../components/LicenseVerification';
+import { GreenCardVerification } from '../components/GreenCardVerification';
+import '../styles/Verification.css';
 
 export const Verification = () => {
-  const [lastName, setLastName] = useState("");
-  const [name, setName] = useState("");
-  const [licenseType, setLicenseType] = useState("");
-  const [statusMessage, setStatusMessage] = useState("");
-  const navigate = useNavigate();
-
-  const handleVerify = async (e) => {
-    e.preventDefault();
-
-    try {
-      const response = await verifyDriverLicense({lastName, name, licenseType});
-      if (response.requestId) {
-        navigate(`/verification-status/${response.requestId}`);
-      }
-    } catch (error) {
-      console.error("Error during verification:", error);
-      setStatusMessage(error.response?.data?.error || "An error occurred during verification.");
-    }
-  };
+  const [activeTab, setActiveTab] = useState('license');
 
   return (
-    <div className='container flex flex-column'>
-      <h2>Verify Driver's License</h2>
-      <form className='forms' onSubmit={handleVerify}>
-        <label>Last Name: </label>
-        <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+    <div className='verification-page'>
+      <h2>Verification</h2>
 
-        <label>Name: </label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} />
+      <div>
+        <button 
+          onClick={() => setActiveTab("license")} 
+          className={activeTab === "license" ? "active" : ""}
+        >
+          License Verification
+        </button>
 
-        <label>License Type: </label>
-        <input type="text" value={licenseType} onChange={(e) => setLicenseType(e.target.value)} />
+        <button 
+          onClick={() => setActiveTab("greenCard")} 
+          className={activeTab === "greenCard" ? "active" : ""}
+        >
+          Green Card Verification
+        </button>
+      </div>
 
-        <button type="submit">Verify</button>
-      </form>
-
-      {statusMessage && <p>{statusMessage}</p>}
+      {activeTab === "license" && <LicenseVerification />}
+      {activeTab === "greenCard" && <GreenCardVerification />}
     </div>
   );
 };

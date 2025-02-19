@@ -42,8 +42,8 @@ const Menu = () => {
         <button>Add Licenses</button>
       </NavLink>
 
-      <NavLink to="/licenses">
-        <button>View Licenses</button>
+      <NavLink to="/documents">
+        <button>View Documents</button>
       </NavLink>
 
       <NavLink to="/notifications">
