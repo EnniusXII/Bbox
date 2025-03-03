@@ -23,6 +23,7 @@
     "mongoose": "^8.9.5",
     "pdfkit": "^0.16.0",
     "qrcode": "^1.5.4",
+    "string-similarity": "^4.0.4",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
