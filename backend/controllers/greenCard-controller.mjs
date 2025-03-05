@@ -1,77 +1,43 @@
-import {asyncHandler} from '../middleware/asyncHandler.mjs';
-import crypto from 'crypto';
-import GreenCard from '../models/GreenCardSchema.mjs';
-import { createGreenCard } from '../utils/createPDF.mjs';
-import mongoose from 'mongoose';
-import { v4 as uuid} from 'uuid';
+import { asyncHandler } from "../middleware/asyncHandler.mjs";
+import ErrorResponse from "../models/ErrorResponseModel.mjs";
+import GreenCard from "../models/GreenCardSchema.mjs";
 
+// Add a new Green Card
 export const addGreenCard = asyncHandler(async (req, res, next) => {
-  try{
-    const { insured, validity } = req.body;
+    const { cardNumber, vehicleInfo, policyholder, insuranceCompany, validity, coveredCountries } = req.body;
 
-    if (!insured || !insured.name) {
-      return res.status(400).json({
-        success: false,
-        message: '`insured.name` is required.',
-      });
+    if (!req.user) {
+        return next(new ErrorResponse("User not authenticated", 401));
     }
 
-    if (!validity || !validity.from || !validity.to) {
-      return res.status(400).json({
-        success: false,
-        message: '`validity` period is required and must include `from` and `to` dates.',
-      });
-    }
-
-    const insuranceId = uuid();
-
-    const hash = generateHash({ insuranceId, insured, validity });
+    // Create the Green Card and link it to the user
+    const greenCard = await GreenCard.create({
+        user: req.user._id,
+        cardNumber,
+        vehicleInfo,
+        policyholder,
+        insuranceCompany,
+        validity,
+        coveredCountries
+    });
 
     res.status(201).json({
-      success: true,
-      message: 'Green Card created successfully',
-      insuranceId,
-      hash,
+        success: true,
+        data: greenCard
     });
-  } catch (error) {
-    console.error('Error creating Green Card:', error);
-    res.status(500).json({
-      success: false,
-      statusCode: 500,
-      error: 'Error creating Green Card',
-      details: error.message,
-    });
-  }
 });
 
-export async function downloadGreenCard(req, res) {
-  const { fileId } = req.params;
+// Get all Green Cards for a user
+export const getGreenCards = asyncHandler(async (req, res, next) => {
+    if (!req.user) {
+        return next(new ErrorResponse("User not authenticated", 401));
+    }
 
-  try {
-    const gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-      bucketName: 'greenCards',
-    });
+    const greenCards = await GreenCard.find({ user: req.user._id });
 
-    const readStream = gfs.openDownloadStream(new mongoose.Types.ObjectId(fileId));
+    if (!greenCards.length) {
+        return res.status(404).json({ success: false, message: "No Green Cards found" });
+    }
 
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="green_card_${fileId}.pdf"`,
-    });
-
-    readStream.pipe(res);
-
-    readStream.on('error', (error) => {
-      console.error('Error retrieving file:', error);
-      res.status(404).json({ success: false, message: 'File not found' });
-    });
-  } catch (error) {
-    console.error('Error in file retrieval:', error);
-    res.status(500).json({ success: false, message: 'Failed to retrieve file' });
-  }
-}
-
-const generateHash = (data) => {
-  const jsonData = JSON.stringify(data);
-  return crypto.createHash('sha256').update(jsonData).digest('hex');
-}
+    res.status(200).json({ success: true, data: greenCards });
+});

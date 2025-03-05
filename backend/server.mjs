@@ -23,7 +23,7 @@ app.use("/api/v1/licenses", licenseRouter);
 app.use("/api/v1/verify", verificationRouter);
 app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/requests", requestsRouter);
-app.use("/api/v1/green-card", greenCardRouter);
+app.use("/api/v1/greenCard", greenCardRouter);
 
 app.use(errorHandler);
 

@@ -13,6 +13,7 @@ import { AddLicenses } from "./pages/AddLicenses";
 import { VerificationPage } from "./pages/VerificationPage";
 import { RequestsPage } from "./pages/RequestsPage";
 import { RequestInfo } from "./components/RequestInfo";
+import GreenCardVerification from "./pages/GreenCardVerification";
 
 export const router = createBrowserRouter([
   {
@@ -66,6 +67,10 @@ export const router = createBrowserRouter([
       {
         path: "/requests/:requestId",
         element: <RequestInfo />,
+      },
+      {
+        path: "/verification/:hash",
+        element: <GreenCardVerification />,
       },
     ],
   },

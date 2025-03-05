@@ -199,3 +199,52 @@ export const markNotificationAsRead = async (notificationId) => {
 
   return response.data;
 };
+
+export const addGreenCard = async (greenCardData) => {
+  const token = localStorage.getItem("token");
+
+  const response = await axios.post(`${BACKEND_URL}/api/v1/greenCard/addGreenCard`, greenCardData, {
+      headers: {
+          Authorization: `Bearer ${token}`
+      },
+  });
+
+  return response.data;
+};
+
+// Get Green Cards for logged-in user
+export const getGreenCards = async () => {
+  const token = localStorage.getItem("token");
+
+  const response = await axios.get(`${BACKEND_URL}/api/v1/greenCard/getGreenCards`, {
+      headers: {
+          Authorization: `Bearer ${token}`
+      },
+  });
+
+  return response.data;
+};
+
+export const generateGreenCardNFT = async (greenCardId) => {
+  const token = localStorage.getItem("token");
+
+  try {
+      const response = await axios.post(`${BACKEND_URL}/api/v1/greenCard/nft/${greenCardId}`, {}, {
+          headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data;
+  } catch (error) {
+      console.error("Error during NFT generation:", error);
+      throw error;
+  }
+};
+
+export const verifyGreenCard = async (hash) => {
+  try {
+      const response = await axios.get(`${BACKEND_URL}/api/v1/greenCard/verify/${hash}`);
+      return response.data;
+  } catch (error) {
+      console.error("Verification error:", error.response?.data || error.message);
+      throw error;
+  }
+};

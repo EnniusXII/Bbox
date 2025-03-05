@@ -1,27 +1,35 @@
 import mongoose from 'mongoose';
 
-const greenCardSchema = new mongoose.Schema({
-  referenceId: {type: String, required: true, unique: true}, 
-  insured: {
-    name: { type: String, required: true },
-  },
-  validity: {
-    from: { type: Date, required: true },
-    to: { type: Date, required: true },
-  },
-  hash: { type: String, required: true },
-  fileId: { type: mongoose.Types.ObjectId, required: true },
-  transactionHash: { type: String, required: true }
+const GreenCardSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    cardNumber: { type: String, required: true },
+    vehicleInfo: {
+        registrationNumber: { type: String, required: true },
+        category: { type: String, required: true },
+    },
+    policyholder: {
+        name: { type: String, required: true },
+        address: { type: String, required: true },
+    },
+    insuranceCompany: {
+        name: { type: String, required: true },
+        address: { type: String, required: true },
+        contact: { type: String, required: true },
+        code: { type: String, required: true },
+    },
+    validity: {
+        from: { type: Date, required: true },
+        to: { type: Date, required: true },
+    },
+    coveredCountries: { type: [String], required: true },
+
+    // Unique hash for verification
+    uniqueHash: { type: String, unique: true },
+
+    // NFT details
+    nftMetadataUrl: { type: String, required: false }, // Store NFT Metadata URL
+    nftTransactionHash: { type: String, required: false }, // Store Transaction Hash
 });
 
-greenCardSchema.pre('save', function(next) {
-  this.validity.from = formatDate(this.validity.from);
-  this.validity.to = formatDate(this.validity.to);
-  next();
-})
+export default mongoose.model("GreenCard", GreenCardSchema);
 
-function formatDate(date){
-  return new Date(date.toISOString().split('T')[0]);
-}
-
-export default mongoose.model('GreenCard', greenCardSchema);

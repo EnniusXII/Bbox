@@ -1,13 +1,17 @@
-import express from 'express';
-import { addGreenCard, downloadGreenCard } from '../controllers/greenCard-controller.mjs';
-import { protect } from '../middleware/authorization.mjs';
-import { setGridFS } from '../middleware/gfs.mjs';
+import express from "express";
+import { addGreenCard, getGreenCards } from "../controllers/greenCard-controller.mjs";
+import { generateGreenCardNFT, verifyGreenCard } from "../controllers/greenCardNFTController.mjs";
+import { protect } from "../middleware/authorization.mjs"; // Middleware to protect routes
 
 const router = express.Router();
 
-router.use(setGridFS);
+// Routes
+router.post("/addGreenCard", protect, addGreenCard);
+router.get("/getGreenCards", protect, getGreenCards);
 
-router.route('/addGreenCard').post(protect, addGreenCard)
-router.route('/verification/:fileId').get(downloadGreenCard);
+router.post("/nft/:greenCardId", protect, generateGreenCardNFT);
+
+// Route to Verify Green Card NFT
+router.get("/verify/:hash", verifyGreenCard);
 
 export default router;
