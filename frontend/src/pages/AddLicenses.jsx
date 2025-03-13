@@ -2,139 +2,222 @@ import React, { useState } from 'react';
 import { addDriversLicense } from '../services/HttpClient';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { extractLicenseData } from '../utils/licenseUtils';
+import ImageUpload from '../components/ImageUpload';
 
 export const AddLicenses = () => {
 	const [isFormVisible, setIsFormVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
+	const [loading, setLoading] = useState(false);
 	const [licenseData, setLicenseData] = useState({
-		name: '',
-		fullName: '',
+		lastName: '',
+		firstName: '',
 		birthDate: '',
 		issueDate: '',
 		expiryDate: '',
+		issuer: '',
+		referenceNumber: '',
 		licenseNumber: '',
-		personalNumber: '',
-		categories: '',
+		licenseTypes: [],
 	});
 
 	const navigate = useNavigate();
 
+	const handleTypeChange = (type) => {
+		setLicenseData((prevData) => {
+			const isSelected = prevData.licenseTypes.includes(type);
+			return {
+				...prevData,
+				licenseTypes: isSelected
+					? prevData.licenseTypes.filter((item) => item !== type)
+					: [...prevData.licenseTypes, type],
+			};
+		});
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		if (
+			!licenseData.birthDate ||
+			!licenseData.issueDate ||
+			!licenseData.expiryDate ||
+			!licenseData.lastName ||
+			!licenseData.firstName ||
+			!licenseData.issuer ||
+			!licenseData.referenceNumber ||
+			!licenseData.licenseNumber ||
+			licenseData.licenseTypes.length === 0
+		) {
+			console.error('❌ Missing date fields before submission!');
+			return;
+		}
+
 		try {
-			const response = await addDriversLicense(
-				licenseData.name,
-				licenseData.fullName,
-				licenseData.birthDate,
-				licenseData.issueDate,
-				licenseData.expiryDate,
-				licenseData.authority,
-				licenseData.licenseNumber,
-				licenseData.personalNumber,
-				licenseData.categories
-			);
+			const response = await addDriversLicense(licenseData);
 
 			if (response.success) {
-				setLicenseData({
-					name: '',
-					fullName: '',
-					birthDate: '',
-					issueDate: '',
-					expiryDate: '',
-					authority: '',
-					licenseNumber: '',
-					personalNumber: '',
-					categories: '',
-				});
+				toast.success("✅ Driver's License successfully added!");
 			}
-
-			setErrorMessage('');
-			toast.success("Driver's License has been added!");
 		} catch (error) {
-			console.error("Error while adding driver's license:", error);
-
 			if (error.response && error.response.data.error) {
-				setErrorMessage(error.response.data.error);
+				toast.error(error.response.data.error);
 			} else {
-				setErrorMessage(
-					'An unexpected error occurred. Please try again.'
+				toast.error(
+					'❌ An unexpected error occurred. Please try again.'
 				);
 			}
 		}
-	};
-
-	const handleImageUpload = async (e) => {
-		const file = e.target.files[0];
-		if (!file) return;
-
-		const reader = new FileReader();
-		reader.onloadend = async () => {
-			const imageDataUrl = reader.result;
-			const extractedData = await extractLicenseData(imageDataUrl);
-			if (extractedData) {
-				setLicenseData(extractedData);
-				toast.success('License data extracted successfully!');
-			} else {
-				toast.error('Failed to extract license data');
-			}
-		};
-		reader.readAsDataURL(file);
 	};
 
 	const toggleForm = () => setIsFormVisible(!isFormVisible);
 
 	return (
 		<div className='container flex flex-column'>
-			<h1 className='pageheader'>Add Licenses</h1>
+			<h1 className='pageheader'>Add Driver's License</h1>
 
-			<button onClick={toggleForm}>Add Drivers License</button>
+			<button onClick={toggleForm}>Add Driver's License</button>
 
 			{isFormVisible && (
 				<form className='forms' onSubmit={handleSubmit}>
-					<label>Last Name: </label>
+					<ImageUpload setLicenseData={setLicenseData} />
+
+					{loading && <p>Extracting data... Please wait.</p>}
+
+					<label>Last Name:</label>
 					<input
 						type='text'
-						value={lastName}
-						onChange={(e) => setLastName(e.target.value)}
+						value={licenseData.lastName}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								lastName: e.target.value,
+							})
+						}
+						required
 					/>
-					<label>First Name: </label>
+
+					<label>First Name:</label>
 					<input
 						type='text'
-						value={name}
-						onChange={(e) => setName(e.target.value)}
+						value={licenseData.firstName}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								firstName: e.target.value,
+							})
+						}
+						required
 					/>
-					<label>Birthdate: </label>
+
+					<label>Birthdate:</label>
 					<input
 						type='date'
-						value={birthdate}
-						onChange={(e) => setBirthdate(e.target.value)}
+						value={licenseData.birthDate}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								birthDate: e.target.value,
+							})
+						}
+						required
 					/>
-					<label>License Type: </label>
-					<select
-						value={licenseType}
-						onChange={(e) => setLicenseType(e.target.value)}
-					>
-						<option value='' disabled>
-							Select License Type
-						</option>
-						<option value='AM'>AM</option>
-						<option value='A1'>A1</option>
-						<option value='A2'>A2</option>
-						<option value='A'>A</option>
-						<option value='B1'>B1</option>
-						<option value='B'>B</option>
-						<option value='C1'>C1</option>
-						<option value='C'>C</option>
-						<option value='D1'>D1</option>
-						<option value='D'>D</option>
-						<option value='BE'>BE</option>
-						<option value='C1E'>C1E</option>
-						<option value='CE'>CE</option>
-						<option value='D1E'>D1E</option>
-						<option value='DE'>DE</option>
-					</select>
+
+					<label>Issue Date (4a):</label>
+					<input
+						type='date'
+						value={licenseData.issueDate}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								issueDate: e.target.value,
+							})
+						}
+						required
+					/>
+
+					<label>Expiry Date (4b):</label>
+					<input
+						type='date'
+						value={licenseData.expiryDate}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								expiryDate: e.target.value,
+							})
+						}
+						required
+					/>
+
+					<label>Issuer (4c):</label>
+					<input
+						type='text'
+						value={licenseData.issuer}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								issuer: e.target.value,
+							})
+						}
+						required
+					/>
+
+					<label>Reference Number (4d):</label>
+					<input
+						type='text'
+						value={licenseData.referenceNumber}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								referenceNumber: e.target.value,
+							})
+						}
+						required
+					/>
+
+					<label>License Number (5):</label>
+					<input
+						type='text'
+						value={licenseData.licenseNumber}
+						onChange={(e) =>
+							setLicenseData({
+								...licenseData,
+								licenseNumber: e.target.value,
+							})
+						}
+						required
+					/>
+
+					<label>License Types:</label>
+					<div className='license-type-container'>
+						{[
+							'AM',
+							'A1',
+							'A2',
+							'A',
+							'B1',
+							'B',
+							'C1',
+							'C',
+							'D1',
+							'D',
+							'BE',
+							'C1E',
+							'CE',
+							'D1E',
+							'DE',
+						].map((type) => (
+							<label key={type} className='type-option'>
+								<input
+									type='checkbox'
+									checked={licenseData.licenseTypes.includes(
+										type
+									)}
+									onChange={() => handleTypeChange(type)}
+								/>
+								{type}
+							</label>
+						))}
+					</div>
 
 					{errorMessage && (
 						<div className='error'>
