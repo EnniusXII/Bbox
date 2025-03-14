@@ -17,7 +17,8 @@ export const GreenCards = ({ greenCards = [] }) => {
 						<p>Category: {card.vehicle?.category}</p>
 						<p>Company: {card.insurance?.companyName}</p>
 						<p>
-							Valid: {card.validity?.from} - {card.validity?.to}
+							Valid: {card.validity?.from.split('T')[0]} -{' '}
+							{card.validity?.to.split('T')[0]}
 						</p>
 						<div>
 							<p>Countries Covered:</p>
