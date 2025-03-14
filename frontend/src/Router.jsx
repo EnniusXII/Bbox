@@ -1,11 +1,11 @@
-// import { Login } from "./pages/Login"
 import { createBrowserRouter } from 'react-router-dom';
+import { Layout } from './pages/Layout'; // Ensure correct import
 import Home from './pages/Home';
 import { Register } from './pages/Register';
-import { Layout } from './pages/Layout';
 import { Login } from './pages/Login';
 import Menu from './pages/Menu';
 import { Verification } from './pages/Verification';
+import { Licenses } from './pages/Licenses';
 import { Documents } from './pages/Documents';
 import Notifications from './pages/Notifications';
 import ApproveVerification from './components/ApproveVerification';
@@ -108,4 +108,11 @@ export const router = createBrowserRouter([
 			},
 		],
 	},
-]);
+],
+ {
+		future: {
+			v7_startTransition: true,
+			v7_relativeSplatPath: true,
+		},
+	}
+ );

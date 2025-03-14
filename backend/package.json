@@ -19,6 +19,7 @@
     "ethers": "^6.13.4",
     "express": "^4.21.0",
     "gridfs-stream": "^1.1.1",
+    "heic2any": "^0.0.4",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "pdfkit": "^0.16.0",
