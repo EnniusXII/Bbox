@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { addDriversLicense } from "../services/HttpClient";
+import { addDriversLicense, getLicenseData } from "../services/HttpClient";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -49,6 +49,21 @@ export const AddLicenses = () => {
         }
     };
 
+    const startUiPathJob = async () => {
+        try {
+            const response = await getLicenseData(); // Calls the backend API
+    
+            if (response.success) {
+                alert("UiPath process started successfully!");
+            } else {
+                alert("Failed to start process: " + JSON.stringify(response));
+            }
+        } catch (error) {
+            console.error("Error triggering UiPath job:", error);
+            alert("An error occurred while triggering the UiPath process.");
+        }
+    };
+
     return (
         <div className="container flex flex-column">
             <h1 className="pageheader">Add Licenses</h1>
@@ -60,7 +75,7 @@ export const AddLicenses = () => {
             </a>
             <br />
             <p>Step 2. Click "Get License Data" to retrieve data automatically</p>
-            <button>Get License Data</button>
+            <button onClick={startUiPathJob}>Get License Data</button>
             <br />
             <button onClick={() => toggleForm("license")}>Add Driver's License</button>
 
