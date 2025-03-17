@@ -37,6 +37,9 @@ export const AddLicenses = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		if (loading) return;
+		setLoading(true);
+
 		if (
 			!licenseData.birthDate ||
 			!licenseData.issueDate ||
@@ -48,24 +51,36 @@ export const AddLicenses = () => {
 			!licenseData.licenseNumber ||
 			licenseData.licenseTypes.length === 0
 		) {
-			console.error('❌ Missing date fields before submission!');
+			toast.error('All fields are required before submission!');
+			setLoading(false);
 			return;
 		}
 
 		try {
 			const response = await addDriversLicense(licenseData);
 
-			if (response.success) {
-				toast.success("✅ Driver's License successfully added!");
+			const success =
+				response?.success ?? response?.data?.success ?? false;
+
+			if (success) {
+				toast.success("Driver's License successfully added!");
+				setTimeout(() => {
+					window.location.href = '/documents';
+				}, 1500);
+			} else {
+				const errorMessage =
+					response?.error ||
+					response?.data?.error ||
+					'Unknown error occurred!';
+				toast.error(`${errorMessage}`);
 			}
 		} catch (error) {
-			if (error.response && error.response.data.error) {
-				toast.error(error.response.data.error);
-			} else {
-				toast.error(
-					'❌ An unexpected error occurred. Please try again.'
-				);
-			}
+			console.error('Axios Error:', error);
+			const errorMessage =
+				error.response?.data?.error || 'An unexpected error occurred!';
+			toast.error(`${errorMessage}`);
+		} finally {
+			setLoading(false);
 		}
 	};
 
