@@ -1,12 +1,19 @@
 import { ethers } from 'ethers';
 import bboxAbi from '../../contract-abi.json';
 import greenCardAbi from '../../greenCard-abi.json';
+import licenseNFTAbi from '../../licenseNFT-abi.json';
 import axios from 'axios';
+import {
+	generateLicenseHash,
+	uploadMetadataToIPFS,
+	uploadQRToIPFS,
+} from '../utils/licenseNFTUtils';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const BBOX_CONTRACT = '0xc761F8E6Cb9af69C49ef3EaA1140b07AAd8056e9';
 const GREEN_CARD_CONTRACT = '0xE3D49AD6C419A03da46e338607AAd3de788da27d';
+const LICENSE_NFT_CONTRACT = '0xcaa5957c4a6bd0744329fc1831c68de94462d6d5';
 
 export const connectToMetaMask = async (contractType = 'BBOX') => {
 	if (!window.ethereum) {
@@ -36,9 +43,12 @@ export const connectToMetaMask = async (contractType = 'BBOX') => {
 		} else if (contractType === 'BBOX') {
 			contractAddress = BBOX_CONTRACT;
 			abi = bboxAbi;
+		} else if (contractType === 'LICENSE_NFT') {
+			contractAddress = LICENSE_NFT_CONTRACT;
+			abi = licenseNFTAbi;
 		} else {
 			throw new Error(
-				`Invalid contractType: ${contractType}. Expected 'BBOX' or 'GREEN_CARD'.`
+				`Invalid contractType: ${contractType}. Expected 'BBOX' or 'GREEN_CARD' or 'LICENSE_NFT'.`
 			);
 		}
 
@@ -294,6 +304,45 @@ export const getStoredHash = async (insuranceId) => {
 		return response.data.hash;
 	} catch (err) {
 		console.error('Failed to get stored hash: ', err);
+		throw err;
+	}
+};
+
+export const mintLicenseNFT = async (licenseData) => {
+	try {
+		const uniqueHash = generateLicenseHash(licenseData);
+		const qrUrl = await uploadQRToIPFS(uniqueHash);
+		const metadata = {
+			name: `Driver's License NFT`,
+			description: `This NFT proves the authenticity of a driver's license.`,
+			image: qrUrl,
+			document_hash: uniqueHash,
+			licenseHolder: `${licenseData.firstName} ${licenseData.lastName}`,
+		};
+		const metadataURI = await uploadMetadataToIPFS(metadata);
+
+		const provider = new ethers.BrowserProvider(window.ethereum);
+		const signer = await provider.getSigner();
+		const contract = new ethers.Contract(
+			LICENSE_NFT_CONTRACT,
+			licenseNFTAbi,
+			signer
+		);
+
+		const mintingFee = await contract.mintingFee();
+
+		const tx = await contract.mintNFT(metadataURI, uniqueHash, {
+			value: mintingFee,
+		});
+		await tx.wait();
+
+		return {
+			success: true,
+			txHash: tx.hash,
+			metadataURI,
+		};
+	} catch (err) {
+		console.error('NFT minting failed: ', err);
 		throw err;
 	}
 };

@@ -1,9 +1,12 @@
-const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+const { buildModule } = require('@nomicfoundation/hardhat-ignition/modules');
+const { ethers } = require('ethers');
 
-const GreenCardModule = buildModule("GreenCardModule", (m) => {
-  const greenCard = m.contract("GreenCardHashes", []);
+const LicenseNFTModule = buildModule('LicenseNFTModule', (m) => {
+	const mintingFee = m.getParameter('mintingFee', ethers.parseEther('0'));
 
-  return { contracts: { greenCard } };
+	const licenseNFT = m.contract('LicenseNFT', [mintingFee]);
+
+	return { licenseNFT };
 });
 
-module.exports = GreenCardModule;
+module.exports = LicenseNFTModule;
