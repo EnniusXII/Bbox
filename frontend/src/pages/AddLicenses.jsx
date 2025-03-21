@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { addDriversLicense, getLicenseData } from "../services/HttpClient";
+import { addDriversLicense, getLicenseData, addGreenCard } from "../services/HttpClient";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
@@ -14,6 +14,16 @@ export const AddLicenses = () => {
         issueDate: "",
         expiryDate: "",
         licenseType: "",
+    });
+
+    // Green Card State
+    const [greenCard, setGreenCard] = useState({
+        cardNumber: "",
+        vehicleInfo: { registrationNumber: "", category: "" },
+        policyholder: { name: "", address: "" },
+        insuranceCompany: { name: "", address: "", contact: "", code: "" },
+        validity: { from: "", to: "" },
+        coveredCountries: "",
     });
 
     const toggleForm = (form) => {
@@ -49,6 +59,50 @@ export const AddLicenses = () => {
         }
     };
 
+    // Handle Green Card Input Changes
+    const handleGreenCardChange = (e) => {
+        const { name, value } = e.target;
+    
+        setGreenCard((prevState) => {
+            // Handle nested properties dynamically
+            const keys = name.split("."); // Split nested properties by "."
+            if (keys.length === 1) {
+                // Direct property (e.g., "cardNumber")
+                return { ...prevState, [name]: value };
+            } else {
+                // Nested property (e.g., "vehicleInfo.registrationNumber")
+                return {
+                    ...prevState,
+                    [keys[0]]: {
+                        ...prevState[keys[0]],
+                        [keys[1]]: value,
+                    },
+                };
+            }
+        });
+    };
+  
+    // Handle Green Card Submission
+    const handleSubmitGreenCard = async (e) => {
+        e.preventDefault();
+        try {
+            await addGreenCard(greenCard);
+            setGreenCard({
+                cardNumber: "",
+                vehicleInfo: { registrationNumber: "", category: "" },
+                policyholder: { name: "", address: "" },
+                insuranceCompany: { name: "", address: "", contact: "", code: "" },
+                validity: { from: "", to: "" },
+                coveredCountries: "",
+            });
+
+            toast.success("Green Card has been added!");
+            navigate("/menu");
+        } catch (error) {
+            setErrorMessage("Failed to add Green Card.");
+        }
+    };
+
     const startUiPathJob = async () => {
         try {
             const response = await getLicenseData(); // Calls the backend API
@@ -78,6 +132,7 @@ export const AddLicenses = () => {
             <button onClick={startUiPathJob}>Get License Data</button>
             <br />
             <button onClick={() => toggleForm("license")}>Add Driver's License</button>
+            <button onClick={() => toggleForm("greenCard")}>Add Green Card</button>
 
             {activeForm === "license" && (
                 <form className="forms" onSubmit={handleSubmitLicense}>
@@ -100,6 +155,49 @@ export const AddLicenses = () => {
 
                     <button type="submit">Add</button>
                 </form>
+            )}
+
+            {/* Green Card Form */}
+            {activeForm === "greenCard" && (
+                <form className="forms" onSubmit={handleSubmitGreenCard}>
+                <label>Card Number:</label>
+                <input type="text" name="cardNumber" value={greenCard.cardNumber} onChange={handleGreenCardChange} required />
+            
+                <label>Vehicle Registration Number:</label>
+                <input type="text" name="vehicleInfo.registrationNumber" value={greenCard.vehicleInfo.registrationNumber} onChange={handleGreenCardChange} required />
+            
+                <label>Vehicle Category:</label>
+                <input type="text" name="vehicleInfo.category" value={greenCard.vehicleInfo.category} onChange={handleGreenCardChange} required />
+            
+                <label>Policyholder Name:</label>
+                <input type="text" name="policyholder.name" value={greenCard.policyholder.name} onChange={handleGreenCardChange} required />
+            
+                <label>Policyholder Address:</label>
+                <input type="text" name="policyholder.address" value={greenCard.policyholder.address} onChange={handleGreenCardChange} required />
+            
+                <label>Insurance Company Name:</label>
+                <input type="text" name="insuranceCompany.name" value={greenCard.insuranceCompany.name} onChange={handleGreenCardChange} required />
+            
+                <label>Insurance Company Address:</label>
+                <input type="text" name="insuranceCompany.address" value={greenCard.insuranceCompany.address} onChange={handleGreenCardChange} required />
+            
+                <label>Insurance Company Contact:</label>
+                <input type="text" name="insuranceCompany.contact" value={greenCard.insuranceCompany.contact} onChange={handleGreenCardChange} required />
+            
+                <label>Insurance Code:</label>
+                <input type="text" name="insuranceCompany.code" value={greenCard.insuranceCompany.code} onChange={handleGreenCardChange} required />
+            
+                <label>Validity From:</label>
+                <input type="date" name="validity.from" value={greenCard.validity.from} onChange={handleGreenCardChange} required />
+            
+                <label>Validity To:</label>
+                <input type="date" name="validity.to" value={greenCard.validity.to} onChange={handleGreenCardChange} required />
+            
+                <label>Covered Countries (comma-separated):</label>
+                <input type="text" name="coveredCountries" value={greenCard.coveredCountries} onChange={handleGreenCardChange} required />
+            
+                <button type="submit">Add Green Card</button>
+            </form>
             )}
         </div>
     );
