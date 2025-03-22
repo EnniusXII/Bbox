@@ -8,6 +8,8 @@ import FormData from "form-data";
 
 dotenv.config();
 
+const URL = process.env.WEBSITE_URL
+
 import contractABI from "../GcNftContractAbi.json" assert { type: "json" };
 const contractAddress = "0x376A3BceCD373be36639CB9069f40ad149D079BA";
 const walletAddress = "0x3f3ca9A42a0d288106573A2A3c8C842b1456425B";
@@ -97,7 +99,7 @@ export const generateGreenCardNFT = async (req, res) => {
     const hashValue = greenCard.hash;
 
     // Generate QR Code pointing to a verification URL that includes the hash
-    const qrCodeData = `http://localhost:5173/verification/${hashValue}`;
+    const qrCodeData = `${URL}/green-card-nft-verification/${hashValue}`;
     const qrCodeImage = await QRCode.toDataURL(qrCodeData);
     const qrIpfsUrl = await uploadToIPFS(qrCodeImage);
     if (!qrIpfsUrl) throw new Error("QR Code upload failed");

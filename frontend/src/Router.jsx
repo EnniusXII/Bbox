@@ -108,7 +108,7 @@ export const router = createBrowserRouter([
 				element: <ApproveGreenCardVerification />,
 			},
 			{
-				path: "/verification/:hash",
+				path: "/green-card-nft-verification/:hash",
 				element: <GreenCardNFTVerification />,
 			},
 		],
