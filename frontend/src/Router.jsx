@@ -20,6 +20,7 @@ import DownloadGreenCard from './pages/DownloadGreenCard';
 import RequestGreenCardVerification from './pages/RequestGreenCardVerification';
 import GreenCardNotifications from './pages/GreenCardNotifications';
 import ApproveGreenCardVerification from './pages/ApproveGreenCardVerification';
+import GreenCardNFTVerification from './pages/GreenCardNFTVerification';
 
 export const router = createBrowserRouter([
 	{
@@ -105,6 +106,10 @@ export const router = createBrowserRouter([
 			{
 				path: '/approve-green-card/:requestId',
 				element: <ApproveGreenCardVerification />,
+			},
+			{
+				path: "/verification/:hash",
+				element: <GreenCardNFTVerification />,
 			},
 		],
 	},

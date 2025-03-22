@@ -19,7 +19,7 @@ connectDb();
 const app = express();
 
 app.use(express.json());
-app.use(cors({ origin: 'http://192.168.1.227:5009' }));
+app.use(cors());
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/licenses', licenseRouter);
 app.use('/api/v1/verify', verificationRouter);

@@ -297,3 +297,29 @@ export const getStoredHash = async (insuranceId) => {
 		throw err;
 	}
 };
+
+
+
+export const generateGreenCardNFT = async (greenCardId) => {
+	const token = localStorage.getItem("token");
+  
+	try {
+		const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/nft/${greenCardId}`, {}, {
+			headers: { Authorization: `Bearer ${token}` },
+		});
+		return response.data;
+	} catch (error) {
+		console.error("Error during NFT generation:", error);
+		throw error;
+	}
+  };
+  
+  export const verifyGreenCardNFT = async (hash) => {
+	try {
+		const response = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify-nft/${hash}`);
+		return response.data;
+	} catch (error) {
+		console.error("Verification error:", error.response?.data || error.message);
+		throw error;
+	}
+  };
