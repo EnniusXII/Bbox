@@ -75,7 +75,7 @@ export const addDriversLicense = asyncHandler(async (req, res, next) => {
 		licenseTypes,
 	});
 
-	res.status(201).json({ success: true, statusCode: 201, data: license });
+	res.status(201).json({ success: true, statusCode: 201, license });
 });
 
 export const getDriversLicenses = asyncHandler(async (req, res, next) => {

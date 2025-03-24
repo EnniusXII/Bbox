@@ -39,9 +39,9 @@ export const getUserDetails = async () => {
 };
 
 export const addDriversLicense = async (licenseData) => {
-	return axios.post(
+	const response = await axios.post(
 		`${BACKEND_URL}/api/v1/licenses/addDriversLicense`,
-		{ ...licenseData },
+		licenseData,
 		{
 			headers: {
 				'Content-Type': 'application/json',
@@ -49,6 +49,8 @@ export const addDriversLicense = async (licenseData) => {
 			},
 		}
 	);
+
+	return response.data; // 👈 fix: only return data
 };
 
 export const getDriversLicenses = async () => {
@@ -384,11 +386,11 @@ export const updateLicenseNFT = async (licenseId, nftData) => {
 	try {
 		const response = await axios.patch(
 			`${BACKEND_URL}/api/v1/licenses/update-nft/${licenseId}`,
-			{ uniqueHash, nftMetadataUri, nftTransactionHash },
 			nftData,
 			{
 				headers: {
 					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
 				},
 			}
 		);

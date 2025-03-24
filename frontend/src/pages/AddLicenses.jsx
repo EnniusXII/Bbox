@@ -61,11 +61,10 @@ export const AddLicenses = () => {
 
 		try {
 			const response = await addDriversLicense(licenseData);
-			const addedLicense = response?.data?.license || response?.license;
+			console.log('License API response:', response);
+			const addedLicense = response?.license;
 			const licenseIdFromResponse = addedLicense?._id || addedLicense?.id;
-
-			const success =
-				response?.success ?? response?.data?.success ?? false;
+			const success = response?.success;
 
 			if (success && licenseIdFromResponse) {
 				toast.success(`Driver's License successfully added!`);
@@ -268,6 +267,7 @@ export const AddLicenses = () => {
 							onClick={async () => {
 								try {
 									setLoading(true);
+
 									const { mintLicenseNFT } = await import(
 										'../services/BlockchainServices'
 									);
@@ -293,8 +293,8 @@ export const AddLicenses = () => {
 									console.error('Error creating NFT: ', err);
 									toast.error('Failed to create NFT!');
 								} finally {
-									navigate('/documents');
 									setLoading(false);
+									navigate('/documents');
 								}
 							}}
 						>

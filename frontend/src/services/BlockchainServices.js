@@ -319,7 +319,7 @@ export const mintLicenseNFT = async (licenseData) => {
 			document_hash: uniqueHash,
 			licenseHolder: `${licenseData.firstName} ${licenseData.lastName}`,
 		};
-		const metadataURI = await uploadMetadataToIPFS(metadata);
+		const nftMetadataUri = await uploadMetadataToIPFS(metadata);
 
 		const provider = new ethers.BrowserProvider(window.ethereum);
 		const signer = await provider.getSigner();
@@ -331,15 +331,17 @@ export const mintLicenseNFT = async (licenseData) => {
 
 		const mintingFee = await contract.mintingFee();
 
-		const tx = await contract.mintNFT(metadataURI, uniqueHash, {
+		const tx = await contract.mintNFT(nftMetadataUri, uniqueHash, {
 			value: mintingFee,
 		});
-		await tx.wait();
+		const receipt = await tx.wait();
+
+		const nftTransactionHash = receipt.hash;
 
 		return {
-			success: true,
-			txHash: tx.hash,
-			metadataURI,
+			uniqueHash,
+			nftMetadataUri,
+			nftTransactionHash,
 		};
 	} catch (err) {
 		console.error('NFT minting failed: ', err);

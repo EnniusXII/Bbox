@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import '../styles/Documents.css';
 import { Licenses } from './Licenses';
 import { GreenCards } from '../components/GreenCards';
 import { getGreenCards, getDriversLicenses } from '../services/HttpClient';

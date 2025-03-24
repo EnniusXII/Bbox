@@ -2,7 +2,7 @@ import React from 'react';
 
 export const GreenCards = ({ greenCards = [] }) => {
 	return (
-		<div>
+		<div className='green-cards-container'>
 			<h2>Green Cards</h2>
 			{greenCards.length > 0 ? (
 				greenCards.map((card) => (
@@ -23,7 +23,7 @@ export const GreenCards = ({ greenCards = [] }) => {
 						<div>
 							<p>Countries Covered:</p>
 							{card.countriesCovered?.length > 0 ? (
-								<ul>
+								<ul className='countries-list'>
 									{card.countriesCovered?.map(
 										(country, index) => (
 											<li key={index}>

@@ -60,7 +60,7 @@ const driverLicenseSchema = new mongoose.Schema({
 		],
 	},
 	uniqueHash: { type: String, unique: true },
-	nftMetadataURI: { type: String, required: false },
+	nftMetadataUri: { type: String, required: false },
 	nftTransactionHash: { type: String, required: false },
 	isApproved: {
 		type: Boolean,
