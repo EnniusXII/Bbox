@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import '../styles/Documents.css';
 import { Licenses } from './Licenses';
 import { GreenCards } from '../components/GreenCards';
 import { getGreenCards, getDriversLicenses } from '../services/HttpClient';
@@ -26,12 +27,11 @@ export const Documents = () => {
       setGreenCards(greenCardsResponse?.data || []);
     } catch (error) {
       setErrorMessage('Failed to fetch documents');
-      console.error('❌ Documents Fetch Error:', error);
+      console.error(' Documents Fetch Error:', error);
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchDocuments();
   }, []);

@@ -20,13 +20,15 @@ import DownloadGreenCard from './pages/DownloadGreenCard';
 import RequestGreenCardVerification from './pages/RequestGreenCardVerification';
 import GreenCardNotifications from './pages/GreenCardNotifications';
 import ApproveGreenCardVerification from './pages/ApproveGreenCardVerification';
+import LicenseNFTVerification from './pages/LicenseNFTVerification';
 import GreenCardNFTVerification from './pages/GreenCardNFTVerification';
 
-export const router = createBrowserRouter([
-	{
-		path: '/',
-		element: <Layout />,
-		children: [
+export const router = createBrowserRouter(
+	[
+		{
+		  path: '/',
+		  element: <Layout />,
+		  children: [
 			{
 				index: true,
 				element: <Home />,
@@ -111,6 +113,10 @@ export const router = createBrowserRouter([
 				path: "/green-card-nft-verification/:hash",
 				element: <GreenCardNFTVerification />,
 			},
+      {
+				path: '/verification/:uniqueHash',
+				element: <LicenseNFTVerification />,
+			},
 		],
 	},
 ],
@@ -120,4 +126,4 @@ export const router = createBrowserRouter([
 			v7_relativeSplatPath: true,
 		},
 	}
- );
+);

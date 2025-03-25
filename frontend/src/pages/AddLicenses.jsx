@@ -8,6 +8,9 @@ export const AddLicenses = () => {
 	const [isFormVisible, setIsFormVisible] = useState(false);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [loading, setLoading] = useState(false);
+	const [licenseAdded, setLicenseAdded] = useState(false);
+	const [showNFTPrompt, setShowNFTPrompt] = useState(false);
+	const [licenseId, setLicenseId] = useState(null);
 	const [licenseData, setLicenseData] = useState({
 		lastName: '',
 		firstName: '',
@@ -58,15 +61,17 @@ export const AddLicenses = () => {
 
 		try {
 			const response = await addDriversLicense(licenseData);
+			console.log('License API response:', response);
+			const addedLicense = response?.license;
+			const licenseIdFromResponse = addedLicense?._id || addedLicense?.id;
+			const success = response?.success;
 
-			const success =
-				response?.success ?? response?.data?.success ?? false;
-
-			if (success) {
-				toast.success("Driver's License successfully added!");
-				setTimeout(() => {
-					window.location.href = '/documents';
-				}, 1500);
+			if (success && licenseIdFromResponse) {
+				toast.success(`Driver's License successfully added!`);
+				setLicenseId(licenseIdFromResponse);
+				setLicenseAdded(true);
+				setIsFormVisible(false);
+				setShowNFTPrompt(true);
 			} else {
 				const errorMessage =
 					response?.error ||
@@ -246,6 +251,57 @@ export const AddLicenses = () => {
 
 					<button type='submit'>Add</button>
 				</form>
+			)}
+			{showNFTPrompt && (
+				<div className='nft-prompt'>
+					<h2>Do you wish to create an NFT for your license?</h2>
+					<div className='btn-controller'>
+						<button
+							onClick={() => {
+								navigate('/documents');
+							}}
+						>
+							No
+						</button>
+						<button
+							onClick={async () => {
+								try {
+									setLoading(true);
+
+									const { mintLicenseNFT } = await import(
+										'../services/BlockchainServices'
+									);
+									const {
+										uniqueHash,
+										nftMetadataUri,
+										nftTransactionHash,
+									} = await mintLicenseNFT(licenseData);
+
+									const { updateLicenseNFT } = await import(
+										'../services/HttpClient'
+									);
+									await updateLicenseNFT(licenseId, {
+										uniqueHash,
+										nftMetadataUri,
+										nftTransactionHash,
+									});
+
+									toast.success(
+										'NFT successfully created and saved!'
+									);
+								} catch (err) {
+									console.error('Error creating NFT: ', err);
+									toast.error('Failed to create NFT!');
+								} finally {
+									setLoading(false);
+									navigate('/documents');
+								}
+							}}
+						>
+							Yes
+						</button>
+					</div>
+				</div>
 			)}
 		</div>
 	);

@@ -75,7 +75,7 @@ export const addDriversLicense = asyncHandler(async (req, res, next) => {
 		licenseTypes,
 	});
 
-	res.status(201).json({ success: true, statusCode: 201, data: license });
+	res.status(201).json({ success: true, statusCode: 201, license });
 });
 
 export const getDriversLicenses = asyncHandler(async (req, res, next) => {
@@ -86,9 +86,10 @@ export const getDriversLicenses = asyncHandler(async (req, res, next) => {
 	const licenses = await DriverLicense.find({ user: req.user._id });
 
 	if (!licenses.length) {
-		return res
-			.status(404)
-			.json({ success: false, message: "No driver's licenses found" });
+		return res.json({
+			success: false,
+			message: "No driver's licenses found",
+		});
 	}
 
 	res.status(200).json({ success: true, data: licenses });
