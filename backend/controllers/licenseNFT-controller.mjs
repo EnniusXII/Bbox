@@ -27,13 +27,37 @@ export const updateLicenseNFT = asyncHandler(async (req, res, next) => {
 
 		await license.save();
 
-		console.log('✅ License NFT fields updated and saved');
+		console.log('License NFT fields updated and saved');
 		res.status(200).json({ success: true, data: license });
 	} catch (err) {
-		console.error(`❌ Error updating license NFT data:`, err);
+		console.error(`Error updating license NFT data:`, err);
 		res.status(500).json({
 			success: false,
 			error: 'Failed to update license NFT data.',
 		});
 	}
 });
+
+export const verifyLicense = async (req, res) => {
+	const { hash } = req.params;
+	const license = await DriversLicense.findOne({ uniqueHash: hash });
+
+	try {
+		if (!license) {
+			return res.status(404).json({
+				valid: false,
+				message: 'License not found or invalid',
+			});
+		}
+
+		res.status(200).json({
+			valid: true,
+			firstName: license.firstName,
+			lastName: license.lastName,
+			birthDate: license.birthDate,
+			referenceNumber: license.referenceNumber,
+		});
+	} catch (error) {
+		res.status(500).json({ valid: false, error: error.message });
+	}
+};

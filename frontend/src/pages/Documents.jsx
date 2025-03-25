@@ -22,7 +22,7 @@ export const Documents = () => {
 				setGreenCards(greenCardsResponse?.data || []);
 			} catch (error) {
 				setErrorMessage('Failed to fetch documents');
-				console.error('❌ Documents Fetch Error:', error);
+				console.error('Documents Fetch Error:', error);
 			} finally {
 				setLoading(false);
 			}

@@ -385,7 +385,7 @@ export const updateLicenseNFT = async (licenseId, nftData) => {
 
 	try {
 		const response = await axios.patch(
-			`${BACKEND_URL}/api/v1/licenses/update-nft/${licenseId}`,
+			`${BACKEND_URL}/api/v1/licenses/nft/${licenseId}`,
 			nftData,
 			{
 				headers: {

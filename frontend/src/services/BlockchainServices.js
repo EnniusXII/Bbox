@@ -348,3 +348,18 @@ export const mintLicenseNFT = async (licenseData) => {
 		throw err;
 	}
 };
+
+export const verifyLicenseNFT = async (uniqueHash) => {
+	try {
+		const response = await axios.get(
+			`${BACKEND_URL}/api/v1/licenses/verify-nft/${uniqueHash}`
+		);
+		return response.data;
+	} catch (error) {
+		console.error(
+			'Verification error:',
+			error.response?.data || error.message
+		);
+		throw error;
+	}
+};
