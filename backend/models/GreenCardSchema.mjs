@@ -26,6 +26,7 @@ const greenCardSchema = new mongoose.Schema({
 	hash: { type: String, required: true },
 	fileId: { type: mongoose.Types.ObjectId, required: true },
 	transactionHash: { type: String, default: null },
+	nftMetadataUrl: { type: String, required: false }, // Store NFT Metadata URL
 });
 
 greenCardSchema.pre('save', function (next) {
