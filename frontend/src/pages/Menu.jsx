@@ -61,6 +61,10 @@ const Menu = () => {
       <NavLink to="/green-card/verify">
         <button>Verify Green Card</button>
       </NavLink>
+
+      <NavLink to="/personal-data">
+        <button>Personal Data</button>
+      </NavLink>
     </div>
   )
 }
