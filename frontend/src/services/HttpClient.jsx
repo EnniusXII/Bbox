@@ -403,3 +403,42 @@ export const updateLicenseNFT = async (licenseId, nftData) => {
 		);
 	}
 };
+
+export const getUserInfo = async () => {
+	const token = localStorage.getItem('token');
+
+	try {
+		const response = await axios.get(`${BACKEND_URL}/api/v1/user-info`, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		});
+		return response.data;
+	} catch (err) {
+		console.error('Error fetching user info: ', err);
+		throw err.response?.data?.message || 'Failed to fetch user info';
+	}
+};
+
+export const updateUserInfo = async (phoneNumber, selfie) => {
+	const token = localStorage.getItem('token');
+	const payload = { phoneNumber, selfie };
+
+	try {
+		const response = await axios.put(
+			`${BACKEND_URL}/api/v1/user-info/update`,
+			payload,
+			{
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+				},
+			}
+		);
+		return response.data;
+	} catch (err) {
+		console.error('❌ Axios ERROR:', err.message);
+		console.error('🔍 Axios DETAILS:', err.config);
+		throw err.response?.data?.message || 'Failed to update user info';
+	}
+};
