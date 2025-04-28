@@ -2,6 +2,7 @@ import express from 'express';
 import {
 	addDriversLicense,
 	getDriversLicenses,
+	getLicenseData,
 	verifyLicenseData,
 } from '../controllers/license-controller.mjs';
 import {
@@ -9,7 +10,7 @@ import {
 	verifyLicense,
 } from '../controllers/licenseNFT-controller.mjs';
 import { protect } from '../middleware/authorization.mjs';
-import { getLicenseData } from '../../frontend/src/services/HttpClient';
+
 
 const router = express.Router();
 
