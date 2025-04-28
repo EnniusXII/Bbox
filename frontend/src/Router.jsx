@@ -23,109 +23,114 @@ import ApproveGreenCardVerification from './pages/ApproveGreenCardVerification';
 import LicenseNFTVerification from './pages/LicenseNFTVerification';
 import GreenCardNFTVerification from './pages/GreenCardNFTVerification';
 import { PersonalData } from './pages/PersonalData';
+import UserInfo from './pages/UserInfo';
 
 export const router = createBrowserRouter(
 	[
 		{
-		  path: '/',
-		  element: <Layout />,
-		  children: [
-			{
-				index: true,
-				element: <Home />,
-			},
-			{
-				path: '/register',
-				element: <Register />,
-			},
-			{
-				path: '/login',
-				element: <Login />,
-			},
-			{
-				path: '/menu',
-				element: <Menu />,
-			},
-			{
-				path: '/verification',
-				element: <Verification />,
-			},
-			{
-				path: '/verification-status/:requestId',
-				element: <VerificationPage />,
-			},
-			{
-				path: '/addlicense',
-				element: <AddLicenses />,
-			},
-			{
-				path: '/documents',
-				element: <Documents />,
-			},
-			{
-				path: '/notifications',
-				element: <Notifications />,
-			},
-			{
-				path: '/approve/:requestId',
-				element: <ApproveVerification />,
-			},
-			{
-				path: '/approve-green-card/:requestId',
-				element: <ApproveGreenCardVerification />,
-			},
-			{
-				path: '/requests',
-				element: <RequestsPage />,
-			},
-			{
-				path: '/requests/:requestId',
-				element: <RequestInfo />,
-			},
-			{
-				path: '/green-card/create',
-				element: <CreateGreenCard />,
-			},
-			{
-				path: '/green-card/confirm',
-				element: <ConfirmGreenCard />,
-			},
-			{
-				path: '/green-card/verify',
-				element: <VerifyGreenCard />,
-			},
-			{
-				path: '/green-card/download/:fileId',
-				element: <DownloadGreenCard />,
-			},
-			{
-				path: '/request-green-card-verification',
-				element: <RequestGreenCardVerification />,
-			},
-			{
-				path: '/green-card-notifications',
-				element: <GreenCardNotifications />,
-			},
-			{
-				path: '/approve-green-card/:requestId',
-				element: <ApproveGreenCardVerification />,
-			},
-			{
-				path: "/green-card-nft-verification/:hash",
-				element: <GreenCardNFTVerification />,
-			},
-      		{
-				path: '/verification/:uniqueHash',
-				element: <LicenseNFTVerification />,
-			},
-      		{
-				path: '/personal-data',
-				element: <PersonalData />,
-			},
-		],
-	},
-],
- {
+			path: '/',
+			element: <Layout />,
+			children: [
+				{
+					index: true,
+					element: <Home />,
+				},
+				{
+					path: '/register',
+					element: <Register />,
+				},
+				{
+					path: '/login',
+					element: <Login />,
+				},
+				{
+					path: '/menu',
+					element: <Menu />,
+				},
+				{
+					path: '/verification',
+					element: <Verification />,
+				},
+				{
+					path: '/verification-status/:requestId',
+					element: <VerificationPage />,
+				},
+				{
+					path: '/addlicense',
+					element: <AddLicenses />,
+				},
+				{
+					path: '/documents',
+					element: <Documents />,
+				},
+				{
+					path: '/notifications',
+					element: <Notifications />,
+				},
+				{
+					path: '/approve/:requestId',
+					element: <ApproveVerification />,
+				},
+				{
+					path: '/approve-green-card/:requestId',
+					element: <ApproveGreenCardVerification />,
+				},
+				{
+					path: '/requests',
+					element: <RequestsPage />,
+				},
+				{
+					path: '/requests/:requestId',
+					element: <RequestInfo />,
+				},
+				{
+					path: '/green-card/create',
+					element: <CreateGreenCard />,
+				},
+				{
+					path: '/green-card/confirm',
+					element: <ConfirmGreenCard />,
+				},
+				{
+					path: '/green-card/verify',
+					element: <VerifyGreenCard />,
+				},
+				{
+					path: '/green-card/download/:fileId',
+					element: <DownloadGreenCard />,
+				},
+				{
+					path: '/request-green-card-verification',
+					element: <RequestGreenCardVerification />,
+				},
+				{
+					path: '/green-card-notifications',
+					element: <GreenCardNotifications />,
+				},
+				{
+					path: '/approve-green-card/:requestId',
+					element: <ApproveGreenCardVerification />,
+				},
+				{
+					path: '/green-card-nft-verification/:hash',
+					element: <GreenCardNFTVerification />,
+				},
+				{
+					path: '/verification/:uniqueHash',
+					element: <LicenseNFTVerification />,
+				},
+        {
+          path: '/personal-data',
+          element: <PersonalData />,
+			  },
+				{
+					path: '/user-info',
+					element: <UserInfo />,
+				},
+			],
+		},
+	],
+	{
 		future: {
 			v7_startTransition: true,
 			v7_relativeSplatPath: true,

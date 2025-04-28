@@ -2,6 +2,7 @@ import express from 'express';
 import {
 	addDriversLicense,
 	getDriversLicenses,
+	verifyLicenseData,
 } from '../controllers/license-controller.mjs';
 import {
 	updateLicenseNFT,
@@ -17,5 +18,7 @@ router.route('/getDriversLicense').get(protect, getDriversLicenses);
 router.route('/nft/:licenseId').patch(protect, updateLicenseNFT);
 
 router.route('/verify-nft/:hash').get(verifyLicense);
+
+router.route("/verify-data").post(verifyLicenseData);
 
 export default router;
