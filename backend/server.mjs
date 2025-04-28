@@ -9,7 +9,7 @@ import notificationRouter from './routes/notification-routes.mjs';
 import { errorHandler } from './middleware/errorHandler.mjs';
 import requestsRouter from './routes/request-routes.mjs';
 import greenCardRouter from './routes/greenCard-routes.mjs';
-import gcVerificationRouter from './routes/gCVerification-routes.mjs';
+import gcVerificationRouter from './routes/gcVerification-routes.mjs';
 import gcNotificationRouter from './routes/gcNotification-routes.mjs';
 import userInfoRouter from './routes/userInfo-routes.mjs';
 
