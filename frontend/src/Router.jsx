@@ -22,6 +22,7 @@ import GreenCardNotifications from './pages/GreenCardNotifications';
 import ApproveGreenCardVerification from './pages/ApproveGreenCardVerification';
 import LicenseNFTVerification from './pages/LicenseNFTVerification';
 import GreenCardNFTVerification from './pages/GreenCardNFTVerification';
+import { PersonalData } from './pages/PersonalData';
 import UserInfo from './pages/UserInfo';
 
 export const router = createBrowserRouter(
@@ -118,6 +119,10 @@ export const router = createBrowserRouter(
 					path: '/verification/:uniqueHash',
 					element: <LicenseNFTVerification />,
 				},
+        {
+          path: '/personal-data',
+          element: <PersonalData />,
+			  },
 				{
 					path: '/user-info',
 					element: <UserInfo />,
