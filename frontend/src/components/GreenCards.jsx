@@ -8,7 +8,7 @@ export const GreenCards = ({
   nftImages,
 }) => {
   return (
-    <div>
+    <div className='container flex flex-column'>
       <h2>Green Cards</h2>
       {greenCards.length > 0 ? (
         greenCards.map((card) => (
@@ -35,7 +35,7 @@ export const GreenCards = ({
                 <p>No countries listed.</p>
               )}
             </div>
-            <div className="nft-actions">
+            <div className="nft-actions flex flex-column">
               {card.nftMetadataUrl ? (
                 <>
                   <button
