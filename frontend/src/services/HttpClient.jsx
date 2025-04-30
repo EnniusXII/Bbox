@@ -444,22 +444,25 @@ export const updateUserInfo = async (phoneNumber, selfie) => {
 };
 
 export const getLicenseData = async () => {
-	const token = localStorage.getItem("token");
-  
+	const token = localStorage.getItem('token');
+
 	try {
-	  const response = await axios.post(
-		`${BACKEND_URL}/api/v1/licenses/getLicenseData`, 
-		{}, 
-		{
-		  headers: {
-			Authorization: `Bearer ${token}`
-		  }
-		}
-	  );
-  
-	  return response.data;
+		const response = await axios.post(
+			`${BACKEND_URL}/api/v1/licenses/getLicenseData`,
+			{},
+			{
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			}
+		);
+
+		return response.data;
 	} catch (error) {
-	  console.error("Error triggering UiPath job:", error);
-	  throw error.response?.data?.message || "An error occurred while triggering UiPath job";
+		console.error('Error triggering UiPath job:', error);
+		throw (
+			error.response?.data?.message ||
+			'An error occurred while triggering UiPath job'
+		);
 	}
 };

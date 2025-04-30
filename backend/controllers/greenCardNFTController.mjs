@@ -117,19 +117,22 @@ export const generateGreenCardNFT = async (req, res) => {
 
 	try {
 		const greenCard = await GreenCard.findById(greenCardId);
-		if (!greenCard)
+		if (!greenCard) {
+			console.error('❌ Green Card not found for ID:', greenCardId);
 			return res.status(404).json({ error: 'Green Card not found' });
+		}
 
-		// Use the existing "hash" value from the schema
 		const hashValue = greenCard.hash;
+		console.log('✅ Found Green Card. Hash:', hashValue);
 
-		// Generate QR Code pointing to a verification URL that includes the hash
 		const qrCodeData = `${URL}/green-card-nft-verification/${hashValue}`;
 		const qrCodeImage = await QRCode.toDataURL(qrCodeData);
+		console.log('🖼️ Generated QR Code image');
+
 		const qrIpfsUrl = await uploadToIPFS(qrCodeImage);
 		if (!qrIpfsUrl) throw new Error('QR Code upload failed');
+		console.log('📡 Uploaded QR to IPFS:', qrIpfsUrl);
 
-		// Create Metadata using main branch field names
 		const metadata = {
 			name: 'Green Card NFT',
 			description: 'This NFT verifies the authenticity of a Green Card.',
@@ -141,22 +144,23 @@ export const generateGreenCardNFT = async (req, res) => {
 			validity: greenCard.validity,
 		};
 
-		// Upload Metadata to IPFS
 		const metadataIpfsUrl = await uploadJsonToIPFS(metadata);
 		if (!metadataIpfsUrl) throw new Error('Metadata upload failed');
+		console.log('📡 Uploaded metadata to IPFS:', metadataIpfsUrl);
 
-		// Mint NFT using the walletAddress (or replace with the insured’s wallet address if available)
 		const transactionHash = await mintNft(
 			hashValue,
 			metadataIpfsUrl,
 			walletAddress
 		);
 		if (!transactionHash) throw new Error('NFT Minting failed');
+		console.log('🧾 Minted NFT, TX Hash:', transactionHash);
 
-		// Update Green Card with NFT transaction hash using the schema's "transactionHash" field
 		greenCard.transactionHash = transactionHash;
 		greenCard.nftMetadataUrl = metadataIpfsUrl;
 		await greenCard.save();
+
+		console.log('✅ Green Card updated with NFT metadata');
 
 		res.status(200).json({
 			success: true,
@@ -164,6 +168,8 @@ export const generateGreenCardNFT = async (req, res) => {
 			metadataIpfsUrl,
 		});
 	} catch (error) {
+		console.error('❌ generateGreenCardNFT error:', error.message);
+		console.error('📦 Stack trace:', error.stack);
 		res.status(500).json({ error: error.message });
 	}
 };

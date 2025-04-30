@@ -128,6 +128,9 @@ export const Header = () => {
 							{/* Dropdown Menu */}
 							{menuOpen && (
 								<nav className='dropdown-menu'>
+									<Link to='/user-info' onClick={toggleMenu}>
+										User Info
+									</Link>
 									<Link to='/addlicense' onClick={toggleMenu}>
 										Add License
 									</Link>
