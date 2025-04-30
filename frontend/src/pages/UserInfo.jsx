@@ -59,7 +59,6 @@ const UserInfo = () => {
 
 	if (loading || !userInfo) return <p>Laddar användarinformation...</p>;
 
-	// Function to start camera
 	const startCamera = async () => {
 		try {
 			const stream = await navigator.mediaDevices.getUserMedia({
@@ -117,16 +116,23 @@ const UserInfo = () => {
 				)}
 			</div>
 			<p>
-				<strong>Name:</strong> {userInfo.firstName} <span></span>
-				{userInfo.lastName}
-			</p>
-			<p>
 				<strong>Email:</strong> {userInfo.email}
 			</p>
-			<p>
-				<strong>Phone Number:</strong>{' '}
-				{userInfo.phoneNumber || 'Add your phone number'}
-			</p>
+
+			{userInfo.hasLicense ? (
+				<>
+					<p>
+						<strong>Name:</strong> {userInfo.firstName}{' '}
+						{userInfo.lastName}
+					</p>
+					<p>
+						<strong>Phone Number:</strong>{' '}
+						{userInfo.phoneNumber || 'Add your phone number'}
+					</p>
+				</>
+			) : (
+				<p>Du har ännu inte lagt till ditt körkort.</p>
+			)}
 
 			{!editMode && (
 				<button

@@ -16,23 +16,31 @@ const GREEN_CARD_CONTRACT = '0xE3D49AD6C419A03da46e338607AAd3de788da27d';
 const LICENSE_NFT_CONTRACT = '0xcaa5957c4a6bd0744329fc1831c68de94462d6d5';
 
 export const connectToMetaMask = async (contractType = 'BBOX') => {
-	if (!window.ethereum) {
+	let provider;
+
+	if (window.ethereum?.providers) {
+		provider = window.ethereum.providers.find((p) => p.isMetaMask);
+	} else if (window.ethereum?.isMetaMask) {
+		provider = window.ethereum;
+	}
+
+	if (!provider) {
 		throw new Error(
-			'MetaMask is not installed. Please install it to use this feature.'
+			'MetaMask is not installed. Please install it from https://metamask.io.'
 		);
 	}
 
 	try {
 		// Request account access
-		const accounts = await window.ethereum.request({
+		const accounts = await provider.request({
 			method: 'eth_requestAccounts',
 		});
 
 		// Create a provider connected to MetaMask
-		const provider = new ethers.BrowserProvider(window.ethereum);
+		const ethersProvider = new ethers.BrowserProvider(provider);
 
 		// Use the first account returned by MetaMask
-		const signer = await provider.getSigner(accounts[0]);
+		const signer = await ethersProvider.getSigner(accounts[0]);
 
 		const walletAddress = await signer.getAddress();
 
@@ -52,8 +60,8 @@ export const connectToMetaMask = async (contractType = 'BBOX') => {
 			);
 		}
 
-		// Return the contract instance with the signer
-		return new ethers.Contract(contractAddress, abi, signer), walletAddress;
+		const contract = new ethers.Contract(contractAddress, abi, signer);
+		return [contract, walletAddress];
 	} catch (error) {
 		console.error('MetaMask connection failed:', error);
 		throw error;
@@ -365,25 +373,34 @@ export const verifyLicenseNFT = async (uniqueHash) => {
 };
 
 export const generateGreenCardNFT = async (greenCardId) => {
-	const token = localStorage.getItem("token");
-  
+	const token = localStorage.getItem('token');
+
 	try {
-		const response = await axios.post(`${BACKEND_URL}/api/v1/green-card/nft/${greenCardId}`, {}, {
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const response = await axios.post(
+			`${BACKEND_URL}/api/v1/green-card/nft/${greenCardId}`,
+			{},
+			{
+				headers: { Authorization: `Bearer ${token}` },
+			}
+		);
 		return response.data;
 	} catch (error) {
-		console.error("Error during NFT generation:", error);
+		console.error('Error during NFT generation:', error);
 		throw error;
 	}
-  };
-  
-  export const verifyGreenCardNFT = async (hash) => {
+};
+
+export const verifyGreenCardNFT = async (hash) => {
 	try {
-		const response = await axios.get(`${BACKEND_URL}/api/v1/green-card/verify-nft/${hash}`);
+		const response = await axios.get(
+			`${BACKEND_URL}/api/v1/green-card/verify-nft/${hash}`
+		);
 		return response.data;
 	} catch (error) {
-		console.error("Verification error:", error.response?.data || error.message);
+		console.error(
+			'Verification error:',
+			error.response?.data || error.message
+		);
 		throw error;
 	}
-  };
+};
